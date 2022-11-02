@@ -531,7 +531,3 @@ class TopologyView(PermissionRequiredMixin, View):
             'load_saved': SavedTopology.objects.all(), 
             'requestGET': dict(request.GET),
         })
-
-
-class SiteTopologyView(TopologyView):
-    template_name = 'nextbox_ui_plugin/site_topology.html'
