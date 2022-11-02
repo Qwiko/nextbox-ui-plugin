@@ -68,6 +68,7 @@ interface_full_name_map = {
     'Fa': 'FastEthernet',
     'Gi': 'GigabitEthernet',
     'Te': 'TenGigabitEthernet',
+    '25Ge': 'TwentyFiveGig',
 }
 
 
@@ -335,10 +336,11 @@ def get_topology(nb_devices_qs):
         links_from_device = Cable.objects.filter(terminations__cable_end='A', terminations___device_id=nb_device.id)
         links_to_device = Cable.objects.filter(terminations__cable_end='B', terminations___device_id=nb_device.id)
         
-        
+        # Device is considered passive if it has no linked Interfaces.
+        # Passive cabling devices use Rear and Front Ports.
+        # Check if any connected link is Interface.
+        # If not found it will default to device_is_passive = true
         if links_from_device:
-            # Device is considered passive if it has no linked Interfaces.
-            # Passive cabling devices use Rear and Front Ports.
             for link in links_from_device:
                 for ab_link in link.a_terminations + link.b_terminations:
                     if isinstance(ab_link, Interface) and ab_link.device.id == nb_device.id:
@@ -401,8 +403,8 @@ def get_topology(nb_devices_qs):
             'id': link.id,
             'source': link.a_terminations[0].device_id,
             'target': link.b_terminations[0].device_id,
-            "srcIfName": if_shortname(", ".join([a_link.name for a_link in link.a_terminations])),
-            "tgtIfName": if_shortname(", ".join([b_link.name for b_link in link.b_terminations]))
+            "srcIfName": ", ".join([if_shortname(a_link.name) for a_link in link.a_terminations]),
+            "tgtIfName": ", ".join([if_shortname(b_link.name) for b_link in link.b_terminations])
         })
         if not (isinstance(link.a_terminations[0], Interface) or isinstance(link.b_terminations[0], Interface)):
             # Skip trace if none of cable terminations is an Interface
