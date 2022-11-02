@@ -232,7 +232,15 @@
                     el.set('x', point.x);
                     el.set('y', point.y + offset);
                     el.set('text', this.sourcelabel());
-                    el.set('transform', 'rotate(' + angle + ' ' + point.x + ',' + point.y + ')');
+                    
+                    // Flip text 180 degrees
+                    if (angle < -90 || angle > 90) {
+                        el.set('transform', 'rotate(' + (parseInt(angle)+180).toString() + ' ' + point.x + ',' + point.y + ')');
+                        el.set('text-anchor', 'end')
+                    } else {
+                        el.set('transform', 'rotate(' + angle + ' ' + point.x + ',' + point.y + ')');
+                        el.set('text-anchor', 'start')
+                    }
                     el.setStyle('font-size', 2 * stageScale);
                 }
                 
@@ -246,7 +254,15 @@
                     el.set('x', point.x);
                     el.set('y', point.y + offset);
                     el.set('text', this.targetlabel());
-                    el.set('transform', 'rotate(' + angle + ' ' + point.x + ',' + point.y + ')');
+
+                    // Flip text 180 degrees
+                    if (angle < -90 || angle > 90) {
+                        el.set('transform', 'rotate(' + (parseInt(angle)+180).toString() + ' ' + point.x + ',' + point.y + ')');
+                        el.set('text-anchor', 'start')
+                    } else {
+                        el.set('transform', 'rotate(' + angle + ' ' + point.x + ',' + point.y + ')');
+                        el.set('text-anchor', 'end')
+                    }
                     el.setStyle('font-size', 2 * stageScale);
                 }
             }
