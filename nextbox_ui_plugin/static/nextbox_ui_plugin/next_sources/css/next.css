@@ -4131,7 +4131,7 @@
   #topology .btn-group,
   #topology .btn-group-vertical {
     position: relative;
-    display: inline-flex;
+    display: inline-block;
     vertical-align: middle;
   }
   #topology .btn-group-vertical > .btn,
