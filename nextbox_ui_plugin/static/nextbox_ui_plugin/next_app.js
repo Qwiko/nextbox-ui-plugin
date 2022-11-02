@@ -196,8 +196,8 @@
                 props: {
                     'class': 'sourcelabel',
                     'alignment-baseline': 'text-after-edge',
-                    'text-anchor': 'start',
-                    "style": "fill: #8d092a"
+                    'dominant-baseline': 'middle',
+                    // "style": "fill: #8d092a"
                 }
             }, {
                 name: 'target',
@@ -205,8 +205,8 @@
                 props: {
                     'class': 'targetlabel',
                     'alignment-baseline': 'text-after-edge',
-                    'text-anchor': 'end',
-                    "style": "fill: #8d092a"
+                    'dominant-baseline': 'middle',
+                    // "style": "fill: #8d092a"
                 }
             });
             
@@ -219,16 +219,17 @@
                 var el, point;
                 var line = this.line();
                 var angle = line.angle();
-                var stageScale = this.stageScale();
-                
+                var stageScale = this.stageScale()
+                console.log(stageScale)
                 // pad line
                 line = line.pad(18 * stageScale, 18 * stageScale);
-                
+                offset = (this._offsetRadix * this._offsetPercentage) * 2.1 * stageScale
+                font_size = (12 * stageScale).toString() + "px"
+
+
                 if (this.sourcelabel()) {
-                    
                     el = this.view('source');
                     point = line.start;
-                    offset = (this._offsetRadix * this._offsetPercentage) * 3
                     el.set('x', point.x);
                     el.set('y', point.y + offset);
                     el.set('text', this.sourcelabel());
@@ -241,20 +242,16 @@
                         el.set('transform', 'rotate(' + angle + ' ' + point.x + ',' + point.y + ')');
                         el.set('text-anchor', 'start')
                     }
-                    el.setStyle('font-size', 2 * stageScale);
+                    
+                    el.setStyle('font-size', font_size);
                 }
                 
-                
                 if (this.targetlabel()) {
-                    
                     el = this.view('target');
                     point = line.end;
-                    offset = (this._offsetRadix * this._offsetPercentage) * 3
-                    
                     el.set('x', point.x);
                     el.set('y', point.y + offset);
                     el.set('text', this.targetlabel());
-
                     // Flip text 180 degrees
                     if (angle < -90 || angle > 90) {
                         el.set('transform', 'rotate(' + (parseInt(angle)+180).toString() + ' ' + point.x + ',' + point.y + ')');
@@ -263,7 +260,8 @@
                         el.set('transform', 'rotate(' + angle + ' ' + point.x + ',' + point.y + ')');
                         el.set('text-anchor', 'end')
                     }
-                    el.setStyle('font-size', 2 * stageScale);
+
+                    el.setStyle('font-size', font_size);
                 }
             }
         }
