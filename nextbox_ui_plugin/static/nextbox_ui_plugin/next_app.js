@@ -231,7 +231,7 @@
 
                 angle_rad = Math.PI / 180 * Math.abs(angle)
                 
-                x_offset = Math.abs(Math.sin(angle_rad*2)) * 2
+                x_offset = Math.abs(Math.sin(angle_rad*2)) * 4
                 
 
                 if (this.sourcelabel()) {
@@ -258,12 +258,10 @@
                 
                 if (this.targetlabel()) {
                     el = this.view('target');
-                   
                     point = line.end;
 
                     x = point.x - x_offset
                    
-                    
                     // Flip text 180 degrees
                     if (angle < -90 || angle > 90) {
                         el.set('transform', 'rotate(' + (parseInt(angle)+180).toString() + ' ' + point.x + ',' + point.y + ')');

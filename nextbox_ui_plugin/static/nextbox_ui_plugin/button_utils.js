@@ -16,13 +16,22 @@ function showHideUnconnectedButtonOnClick(button) {
     showHideUnconnected();
 };
 
-function layerSelectorOnChange(checkbox){
-    showHideDeviceRoles(checkbox.value, checkbox.checked);
-};
+function layerSelectorOnClick(target) {
+    showHideDeviceRoles(target.value, target.checked);
+}
 
-function layerSelectorByTagOnChange(checkbox){
-    showHideDevicesByTag(checkbox.value, checkbox.checked)
-};
+// Function to add eventlistener to dropdown buttons
+// This is to properly use stopPropagation so the dropdown does not close onclick
+(function () {
+    var layer_inputs = document.getElementsByClassName("layer_input");
+    function stopPropagation(event) {
+        event.stopPropagation();
+    }
+    for (var i = 0; i < layer_inputs.length; i++) {
+        layer_inputs[i].addEventListener('click', stopPropagation, false);
+    }
+})();
+
 
 function showHidePassiveDevicesButtonInitial() {
     showHidePassiveDevicesButton = document.getElementById("showHidePassiveDevicesButton");

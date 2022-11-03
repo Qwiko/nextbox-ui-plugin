@@ -7,7 +7,6 @@
 {% block header %}
 <script src="{% static 'nextbox_ui_plugin/next_sources/js/next.js' %}"></script>
 <link rel="stylesheet"href="{% static 'nextbox_ui_plugin/next_sources/css/next.css' %}">
-<script src="{% static 'nextbox_ui_plugin/button_utils.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -58,25 +57,29 @@
                         <div class="dropdown-divider"></div>
 
                         {% for device_role_slug, device_role_name, is_visible in device_roles %}
-                            <div class="checkbox ml-1 my-1">
-                                <label>
-                                    <input onchange="layerSelectorOnChange(this)" type="checkbox" value="{{ device_role_slug }}" {{ is_visible|yesno:"checked," }}>{{ device_role_name }}
-                                </label>
+                        <div class="dropdown-item layer_input">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" onclick="layerSelectorOnClick(this)" type="checkbox" role="switch" value="{{ device_role_slug }}" {{ is_visible|yesno:"checked," }}>
+                                <label>{{ device_role_name }}</label>
                             </div>
+                        </div>
                         {% endfor %}
 
-                        <div class="dropdown-divider"></div>
+                        
                         {% if device_tags %}
-                            <h6 class="dropdown-header">Device Tags</h6>
-                            {% for tag, is_visible in device_tags %}
-                                <div class="checkbox ml-1 my-1">
-                                    <label>
-                                        <input onchange="layerSelectorByTagOnChange(this)" type="checkbox" value="{{ tag }}" {{ is_visible|yesno:"checked," }}>{{ tag }}
-                                    </label>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
                         <div class="dropdown-divider"></div>
+                            <h6 class="dropdown-header">Device Tags</h6>
+                            <div class="dropdown-divider"></div>
+                            {% for tag, is_visible in device_tags %}
+                            <div class="dropdown-item layer_input">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" onclick="layerSelectorOnClick(this)" type="checkbox" role="switch" value="{{ tag }}" {{ is_visible|yesno:"checked," }}>
+                                    <label>{{ tag }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -119,8 +122,8 @@
         <div class="row noprint" style="z-index: 1;">
             <div class="col-lg-3" style="z-index: 1;">
                 <div class="pull-left noprint">
+                    
                     <div id="nx-ui-topology" class="container">
-
                     </div>
                 </div>
             </div>
@@ -143,6 +146,7 @@
     var undisplayedRoles = {{ undisplayed_roles|safe }};
     var undisplayedDeviceTags = {{ undisplayed_device_tags|safe }};
     var topologyData = {{ source_data|safe }};
+    var icons = {{ file_icons|safe }};
     var topologySavedData = {{ source_data|safe }};
     var initialLayout = '{{ initial_layout|safe }}';
     var requestGET = {{ requestGET|safe }};
@@ -152,7 +156,7 @@
 </script>
 <script src="{% static 'nextbox_ui_plugin/next_app.js' %}"></script>
 <script src="{% static 'nextbox_ui_plugin/jquery/jquery-3.5.1.min.js' %}"></script>
-
+<script src="{% static 'nextbox_ui_plugin/button_utils.js' %}"></script>
 
 <script type="text/javascript">
     showHideUnconnectedButtonInitial();
