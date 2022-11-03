@@ -277,7 +277,6 @@
 #topology .n-topology.n-topology-blue {
   position: relative;
   overflow: hidden;
-  background: #fff;
   -webkit-transition: background 0.6s;
   transition: background 0.6s;
   -o-user-select: none;
@@ -937,7 +936,6 @@
 #topology .n-topology.n-topology-dark {
   position: relative;
   overflow: hidden;
-  background: #000;
   -webkit-transition: background 0.6s;
   transition: background 0.6s;
   -o-user-select: none;
