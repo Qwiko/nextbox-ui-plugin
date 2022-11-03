@@ -136,22 +136,23 @@ Topology Viewer
 {% block javascript %}
 
 <script type="text/javascript">
-    var displayUnconnected = {{ display_unconnected|yesno:"true,false" }};
-    var displayPassiveDevices = {{ display_passive_devices|yesno:"true,false" }};
-    var displayLogicalMultiCableLinks = {{ display_logical_multicable_links|yesno:"true,false" }};
-    var undisplayedRoles = {{ undisplayed_roles|safe }};
-    var undisplayedDeviceTags = {{ undisplayed_device_tags|safe }};
+    var displayUnconnected = {{ display_unconnected | yesno:"true,false" }};
+    var displayPassiveDevices = {{ display_passive_devices | yesno:"true,false" }};
+    var displayLogicalMultiCableLinks = {{ display_logical_multicable_links | yesno:"true,false" }};
+    var undisplayedRoles = {{ undisplayed_roles | safe }};
+    var undisplayedDeviceTags = {{ undisplayed_device_tags | safe }};
     var topologyData = {{ source_data|safe }};
-    var icons = {{ file_icons|safe }};
-    var topologySavedData = {{ source_data|safe }};
+    var icons = {{ file_icons | safe }};
+    var topologySavedData = {{ source_data|  safe }};
     var initialLayout = '{{ initial_layout|safe }}';
-    var requestGET = {{ requestGET|safe }};
+    var requestGET = {{ requestGET | safe }};
     var netbox_csrf_token = '{{ csrf_token }}'
     var topoSaveURI = '{% url 'plugins-api:nextbox_ui_plugin-api:savedtopology-list' %}';
     console.log(topologyData);
 </script>
+
+
 <script src="{% static 'nextbox_ui_plugin/next_app.js' %}"></script>
-<script src="{% static 'nextbox_ui_plugin/jquery/jquery-3.5.1.min.js' %}"></script>
 <script src="{% static 'nextbox_ui_plugin/button_utils.js' %}"></script>
 
 <script type="text/javascript">
