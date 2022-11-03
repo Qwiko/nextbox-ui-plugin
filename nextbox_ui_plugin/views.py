@@ -68,7 +68,8 @@ interface_full_name_map = {
     'Fa': 'FastEthernet',
     'Gi': 'GigabitEthernet',
     'Te': 'TenGigabitEthernet',
-    '25Ge': 'TwentyFiveGig',
+    '25Ge': ['TwentyFiveGigE', 'TwentyFiveGigabitEthernet'],
+    'Po': 'Port'
 }
 
 
@@ -151,9 +152,12 @@ if INITIAL_LAYOUT not in ('vertical', 'horizontal', 'auto'):
 
 
 def if_shortname(ifname):
-    for k, v in interface_full_name_map.items():
-        if ifname.startswith(v):
-            return ifname.replace(v, k)
+    for key, values in interface_full_name_map.items():
+        if not isinstance(values, list):
+            values = [values]
+        for value in values:
+            if ifname.startswith(value):
+                return ifname.replace(value, key)
     return ifname
 
 
