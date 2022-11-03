@@ -182,19 +182,19 @@
                 name: 'source',
                 type: 'nx.graphic.Text',
                 props: {
-                    'class': 'sourcelabel',
+                    'class': 'nav-link-text',
                     'alignment-baseline': 'text-after-edge',
                     'dominant-baseline': 'middle',
-                    // "style": "fill: #8d092a"
+                    "style": "fill: currentColor",
                 }
             }, {
                 name: 'target',
                 type: 'nx.graphic.Text',
                 props: {
-                    'class': 'targetlabel',
+                    'class': 'nav-link-text',
                     'alignment-baseline': 'text-after-edge',
                     'dominant-baseline': 'middle',
-                    // "style": "fill: #8d092a"
+                    "style": "fill: currentColor",
                 }
             });
             
@@ -411,7 +411,7 @@
             topo.graph().getVertex(node['id']).position({'x': node.x, 'y': node.y});
         });
     });
-    
+
     var shell = new Shell();
     shell.on('resize', function() {
         topo && topo.adaptToContainer();
