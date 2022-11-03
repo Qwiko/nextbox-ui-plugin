@@ -4,41 +4,41 @@
 {% load plugins %}
 {% load helpers %}
 
-{% block header %}
-<script src="{% static 'nextbox_ui_plugin/next_sources/js/next.js' %}"></script>
-<link rel="stylesheet"href="{% static 'nextbox_ui_plugin/next_sources/css/next.css' %}">
-<script src="{% static 'nextbox_ui_plugin/button_utils.js' %}"></script>
+{% block title %}
+Topology Viewer
 {% endblock %}
 
-{% block content %}
+{% block head %}
+<link rel="stylesheet"href="{% static 'nextbox_ui_plugin/next_sources/css/next.css' %}">
+<script src="{% static 'nextbox_ui_plugin/next_sources/js/next.js' %}"></script>
+{% endblock %}
 
-<div class="title-container px-3 pb-3">
-    <div id="content-title">
-        <h1 class="h2 w-100">Topology Viewer</h1>
-    </div>
-</div>
-
-<ul class="nav nav-tabs px-3">
-
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="topology-tab" data-bs-toggle="tab" data-bs-target="#topology" type="button" role="tab" aria-controls="topology" aria-selected="true">
-          Topology
-        </button>
-      </li>
-
+{% block tabs %}
+	<ul class="nav nav-tabs px-3">
+    	{% block tab_items %}
+		<li class="nav-item" role="presentation">
+			<button class="nav-link active" id="topology-tab" data-bs-toggle="tab" data-bs-target="#topology" type="button" role="tab" aria-controls="filters-form" aria-selected="true">
+			  Topology
+			</button>
+		</li>
+		{% if filter_form %}
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="filters-form-tab" data-bs-toggle="tab" data-bs-target="#filters-form" type="button" role="tab" aria-controls="filters-form" aria-selected="false">
+          <button class="nav-link" id="filters-form-tab" data-bs-toggle="tab" data-bs-target="#filters-form" type="button" role="tab" aria-controls="object-list" aria-selected="false">
             Filters
+            {% if filter_form %}{% badge filter_form.changed_data|length bg_color="blue" %}{% endif %}
           </button>
         </li>
+      	{% endif %}
+		{% endblock tab_items %}
+	</ul>
+{% endblock tabs %}
 
 
-</ul>
-
+{% block content-wrapper %}
 <div class="tab-content">
     <div class="tab-pane active" id="topology" role="tabpanel" aria-labelledby="topology-tab">
 
-        <div>
+        <div class="panel-body">
 
             <div class="btn-group">
                 <button class="btn btn-primary " onclick='horizontal()'>Horizontal Layout</button>
@@ -58,25 +58,29 @@
                         <div class="dropdown-divider"></div>
 
                         {% for device_role_slug, device_role_name, is_visible in device_roles %}
-                            <div class="checkbox ml-1 my-1">
-                                <label>
-                                    <input onchange="layerSelectorOnChange(this)" type="checkbox" value="{{ device_role_slug }}" {{ is_visible|yesno:"checked," }}>{{ device_role_name }}
-                                </label>
+                        <div class="dropdown-item layer_input">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" onclick="layerSelectorOnClick(this)" type="checkbox" role="switch" value="{{ device_role_slug }}" {{ is_visible|yesno:"checked," }}>
+                                <label>{{ device_role_name }}</label>
                             </div>
+                        </div>
                         {% endfor %}
 
-                        <div class="dropdown-divider"></div>
+                        
                         {% if device_tags %}
-                            <h6 class="dropdown-header">Device Tags</h6>
-                            {% for tag, is_visible in device_tags %}
-                                <div class="checkbox ml-1 my-1">
-                                    <label>
-                                        <input onchange="layerSelectorByTagOnChange(this)" type="checkbox" value="{{ tag }}" {{ is_visible|yesno:"checked," }}>{{ tag }}
-                                    </label>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
                         <div class="dropdown-divider"></div>
+                            <h6 class="dropdown-header">Device Tags</h6>
+                            <div class="dropdown-divider"></div>
+                            {% for tag, is_visible in device_tags %}
+                            <div class="dropdown-item layer_input">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" onclick="layerSelectorOnClick(this)" type="checkbox" role="switch" value="{{ tag }}" {{ is_visible|yesno:"checked," }}>
+                                    <label>{{ tag }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -115,26 +119,21 @@
                     </form>
                 </div>
             </div>
-        </div>
-        <div class="row noprint" style="z-index: 1;">
-            <div class="col-lg-3" style="z-index: 1;">
-                <div class="pull-left noprint">
-                    <div id="nx-ui-topology" class="container">
+            <div id="nx-ui-topology" class="" style="height: 70vh;"></div>
+        </div> 
 
-                    </div>
-                </div>
-            </div>
-        </div>
+        
     </div>
+    {% if filter_form %}
     <div class="tab-pane" id="filters-form" role="tabpanel" aria-labelledby="filters-form-tab">
         {% include 'inc/filter_list.html' %}
     </div>
+    {% endif %}
 </div>
 
-{% endblock %}
+{% endblock content-wrapper %}
 
 {% block javascript %}
-
 
 <script type="text/javascript">
     var displayUnconnected = {{ display_unconnected|yesno:"true,false" }};
@@ -143,6 +142,7 @@
     var undisplayedRoles = {{ undisplayed_roles|safe }};
     var undisplayedDeviceTags = {{ undisplayed_device_tags|safe }};
     var topologyData = {{ source_data|safe }};
+    var icons = {{ file_icons|safe }};
     var topologySavedData = {{ source_data|safe }};
     var initialLayout = '{{ initial_layout|safe }}';
     var requestGET = {{ requestGET|safe }};
@@ -152,7 +152,7 @@
 </script>
 <script src="{% static 'nextbox_ui_plugin/next_app.js' %}"></script>
 <script src="{% static 'nextbox_ui_plugin/jquery/jquery-3.5.1.min.js' %}"></script>
-
+<script src="{% static 'nextbox_ui_plugin/button_utils.js' %}"></script>
 
 <script type="text/javascript">
     showHideUnconnectedButtonInitial();

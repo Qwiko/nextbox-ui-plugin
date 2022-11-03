@@ -1,10 +1,9 @@
 import django_filters
 from dcim.models import Device, Site, Region
+from tenancy.models import Tenant
 from django.conf import settings
 from packaging import version
 from dcim.models import Location
-
-
 
 class TopologyFilterSet(django_filters.FilterSet):
 
@@ -21,6 +20,10 @@ class TopologyFilterSet(django_filters.FilterSet):
     site_id = django_filters.ModelMultipleChoiceFilter(
         queryset=Site.objects.all(),
         label='Site (ID)',
+    )
+    tenant_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Tenant.objects.all(),
+        label='Tenant (ID)',
     )
     region_id = django_filters.ModelMultipleChoiceFilter(
         queryset=Region.objects.all(),

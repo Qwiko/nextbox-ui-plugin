@@ -7,7 +7,7 @@ from utilities.forms import (
 )
 from .models import SavedTopology
 from dcim.models import Device, Site, Region
-# from tenancy.models import Tenant
+from tenancy.models import Tenant
 from django.conf import settings
 from packaging import version
 
@@ -44,12 +44,12 @@ class TopologyFilterForm(BootstrapMixin, forms.Form):
         to_field_name='id',
         null_option='None',
     )
-    # tenant_id = DynamicModelMultipleChoiceField(
-    #     queryset=Tenant.objects.all(),
-    #     required=False,
-    #     to_field_name='id',
-    #     null_option='None',
-    # )
+    tenant_id = DynamicModelMultipleChoiceField(
+        queryset=Tenant.objects.all(),
+        required=False,
+        to_field_name='id',
+        null_option='None',
+    )
     vlan_id = DynamicModelChoiceField(
         queryset=VLAN.objects.all(),
         required=False,

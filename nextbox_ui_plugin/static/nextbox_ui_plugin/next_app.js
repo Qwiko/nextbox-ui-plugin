@@ -3,23 +3,9 @@
      * NeXt UI base application
      */
 
-    // Calculate topology canvas size
-    // based on window size during page loading.
-    // Canvas size can only be set once during page init. 
-    // It does not autoscale. Page reload is required to update topology dimensions.
-    if (document.body.clientWidth && document.body.clientHeight) {
-        var canvasWidth = document.body.clientWidth*0.75;
-        var canvasHeight = document.body.clientHeight*0.75;
-    } else {
-        var canvasWidth = 850;
-        var canvasHeight = 750;
-    };
-
     // Initialize topology
     var topo = new nx.graphic.Topology({
-        // View dimensions
-        width: canvasWidth,
-        height: canvasHeight,
+        adaptive: true,
         // Dataprocessor is responsible for spreading 
         // the Nodes across the view.
         // 'force' dataprocessor spreads the Nodes so
@@ -75,9 +61,11 @@
         showIcon: true,
         linkInstanceClass: 'CustomLinkClass'
     });
-    
-    topo.registerIcon("dead_node", "/static/nextbox_ui_plugin/img/dead_node.png", 49, 49);
-    topo.registerIcon("patch_panel", "/static/nextbox_ui_plugin/img/patch_panel.png", 49, 49);
+
+    //register icons
+    for (icon of icons) {
+        topo.registerIcon(icon, "/static/nextbox_ui_plugin/img/"+icon+".png", 34, 34);
+    }
     
     var Shell = nx.define(nx.ui.Application, {
         methods: {
@@ -220,47 +208,58 @@
                 var line = this.line();
                 var angle = line.angle();
                 var stageScale = this.stageScale()
-                console.log(stageScale)
                 // pad line
                 line = line.pad(18 * stageScale, 18 * stageScale);
-                offset = (this._offsetRadix * this._offsetPercentage) * 2.1 * stageScale
+                y_offset = (this._offsetRadix * this._offsetPercentage) * 2.1 * stageScale
                 font_size = (12 * stageScale).toString() + "px"
 
+                angle_rad = Math.PI / 180 * Math.abs(angle)
+                
+                x_offset = Math.abs(Math.sin(angle_rad*2)) * 4
+                
 
                 if (this.sourcelabel()) {
                     el = this.view('source');
                     point = line.start;
-                    el.set('x', point.x);
-                    el.set('y', point.y + offset);
-                    el.set('text', this.sourcelabel());
-                    
+
                     // Flip text 180 degrees
                     if (angle < -90 || angle > 90) {
                         el.set('transform', 'rotate(' + (parseInt(angle)+180).toString() + ' ' + point.x + ',' + point.y + ')');
                         el.set('text-anchor', 'end')
+                        x = point.x - x_offset
                     } else {
                         el.set('transform', 'rotate(' + angle + ' ' + point.x + ',' + point.y + ')');
                         el.set('text-anchor', 'start')
+                        x = point.x + x_offset
                     }
                     
+                    y = point.y + y_offset
+                    el.set('x', x);
+                    el.set('y', y);
+                    el.set('text', this.sourcelabel());
                     el.setStyle('font-size', font_size);
                 }
                 
                 if (this.targetlabel()) {
                     el = this.view('target');
                     point = line.end;
-                    el.set('x', point.x);
-                    el.set('y', point.y + offset);
-                    el.set('text', this.targetlabel());
+                   
                     // Flip text 180 degrees
                     if (angle < -90 || angle > 90) {
                         el.set('transform', 'rotate(' + (parseInt(angle)+180).toString() + ' ' + point.x + ',' + point.y + ')');
                         el.set('text-anchor', 'start')
+                        x = point.x + x_offset
                     } else {
                         el.set('transform', 'rotate(' + angle + ' ' + point.x + ',' + point.y + ')');
                         el.set('text-anchor', 'end')
+                        x = point.x - x_offset
                     }
 
+                    y = point.y + y_offset
+
+                    el.set('x', x);
+                    el.set('y', y);
+                    el.set('text', this.targetlabel());
                     el.setStyle('font-size', font_size);
                 }
             }
@@ -412,8 +411,7 @@
             topo.graph().getVertex(node['id']).position({'x': node.x, 'y': node.y});
         });
     });
-
-    // Create an application instance
+    
     var shell = new Shell();
     shell.on('resize', function() {
         topo && topo.adaptToContainer();
@@ -421,4 +419,3 @@
     // Run the application
     shell.start();
 })(nx);
-
