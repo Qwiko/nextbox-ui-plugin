@@ -4,40 +4,41 @@
 {% load plugins %}
 {% load helpers %}
 
-{% block header %}
-<script src="{% static 'nextbox_ui_plugin/next_sources/js/next.js' %}"></script>
-<link rel="stylesheet"href="{% static 'nextbox_ui_plugin/next_sources/css/next.css' %}">
+{% block title %}
+Topology Viewer
 {% endblock %}
 
-{% block content %}
+{% block head %}
+<link rel="stylesheet"href="{% static 'nextbox_ui_plugin/next_sources/css/next.css' %}">
+<script src="{% static 'nextbox_ui_plugin/next_sources/js/next.js' %}"></script>
+{% endblock %}
 
-<div class="title-container px-3 pb-3">
-    <div id="content-title">
-        <h1 class="h2 w-100">Topology Viewer</h1>
-    </div>
-</div>
-
-<ul class="nav nav-tabs px-3">
-
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="topology-tab" data-bs-toggle="tab" data-bs-target="#topology" type="button" role="tab" aria-controls="topology" aria-selected="true">
-          Topology
-        </button>
-      </li>
-
+{% block tabs %}
+	<ul class="nav nav-tabs px-3">
+    	{% block tab_items %}
+		<li class="nav-item" role="presentation">
+			<button class="nav-link active" id="topology-tab" data-bs-toggle="tab" data-bs-target="#topology" type="button" role="tab" aria-controls="filters-form" aria-selected="true">
+			  Topology
+			</button>
+		</li>
+		{% if filter_form %}
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="filters-form-tab" data-bs-toggle="tab" data-bs-target="#filters-form" type="button" role="tab" aria-controls="filters-form" aria-selected="false">
+          <button class="nav-link" id="filters-form-tab" data-bs-toggle="tab" data-bs-target="#filters-form" type="button" role="tab" aria-controls="object-list" aria-selected="false">
             Filters
+            {% if filter_form %}{% badge filter_form.changed_data|length bg_color="blue" %}{% endif %}
           </button>
         </li>
+      	{% endif %}
+		{% endblock tab_items %}
+	</ul>
+{% endblock tabs %}
 
 
-</ul>
-
+{% block content-wrapper %}
 <div class="tab-content">
     <div class="tab-pane active" id="topology" role="tabpanel" aria-labelledby="topology-tab">
 
-        <div>
+        <div class="panel-body">
 
             <div class="btn-group">
                 <button class="btn btn-primary " onclick='horizontal()'>Horizontal Layout</button>
@@ -118,26 +119,21 @@
                     </form>
                 </div>
             </div>
-        </div>
-        <div class="row noprint" style="z-index: 1;">
-            <div class="col-lg-3" style="z-index: 1;">
-                <div class="pull-left noprint">
-                    
-                    <div id="nx-ui-topology" class="container">
-                    </div>
-                </div>
-            </div>
-        </div>
+            <div id="nx-ui-topology" class="" style="height: 70vh;"></div>
+        </div> 
+
+        
     </div>
+    {% if filter_form %}
     <div class="tab-pane" id="filters-form" role="tabpanel" aria-labelledby="filters-form-tab">
         {% include 'inc/filter_list.html' %}
     </div>
+    {% endif %}
 </div>
 
-{% endblock %}
+{% endblock content-wrapper %}
 
 {% block javascript %}
-
 
 <script type="text/javascript">
     var displayUnconnected = {{ display_unconnected|yesno:"true,false" }};
