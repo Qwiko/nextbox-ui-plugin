@@ -9,31 +9,36 @@ from . import forms, filters
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.conf import settings
 from packaging import version
+from users.models import UserConfig
 import json
 import re
 
 
 # Default NeXt UI icons
+
+
+
 SUPPORTED_ICONS = {
-    'switch',
+    'access-switch',
+    'distribution-switch',
+    'power-feed',
     'router',
+    'backup',
     'firewall',
-    'wlc',
-    'unknown',
+    'power-panel',
     'server',
-    'phone',
-    'nexus5000',
-    'ipphone',
-    'host',
-    'camera',
-    'accesspoint',
-    'groups',
-    'groupm',
-    'groupl',
-    'cloud',
-    'unlinked',
-    'hostgroup',
-    'wirelesshost',
+    'circuit',
+    'internal-switch',
+    'power-units',
+    'storage',
+    'connector',
+    'isp-cpe-material',
+    'provider-networks',
+    'wan-network',
+    'core-switch',
+    'non-racked-devices',
+    'role-unknown',
+    'wireless-ap'
 }
 
 # Topology layers would be sorted
@@ -100,14 +105,17 @@ DEFAULT_ICON_ROLE_MAP = {
     'edge-switch': 'switch',
     'edge-router': 'router',
     'core-router': 'router',
-    'core-switch': 'switch',
-    'distribution': 'switch',
+    'core-switch': 'core-switch',
+    'distribution': 'distribution-switch',
     'distribution-router': 'router',
-    'distribution-switch': 'switch',
-    'leaf': 'switch',
-    'spine': 'switch',
-    'access': 'switch',
-    'access-switch': 'switch',
+    'distribution-switch': 'distribution-switch',
+    'leaf': 'access-switch',
+    'spine': 'access-switch',
+    'access': 'access-switch',
+    'access-switch': 'access-switch',
+    'access-point': 'wireless-ap',
+    'patch-panel': 'connector',
+    'pdu': 'power-panel'
 }
 
 
@@ -207,6 +215,8 @@ def tag_is_hidden(tag):
             return True
     return False
 
+def get_file_icons():
+    return SUPPORTED_ICONS
 
 def filter_tags(tags):
     if not tags:
@@ -419,6 +429,7 @@ def get_topology(nb_devices_qs):
         elif isinstance(link.b_terminations[0], Interface):
             interface_side = link.b_terminations[0]
         trace_result = interface_side.trace()
+
         if not trace_result:
             continue
         cable_path = trace_result
@@ -426,19 +437,21 @@ def get_topology(nb_devices_qs):
         # identify segmented cable paths between end-devices
         if len(cable_path) < 2:
             continue
-        if isinstance(cable_path[0][0], Interface) and isinstance(cable_path[-1][2], Interface):
-            if set([c[1] for c in cable_path]) in [set([c[1] for c in x]) for x in multi_cable_connections]:
-                continue
-            multi_cable_connections.append(cable_path)
+        if (cable_path[0][0] and cable_path[-1][-1]):
+            if isinstance(cable_path[0][0][0], Interface) and isinstance(cable_path[-1][-1][0], Interface):
+                # TODO Don't know what this is doing at the moment
+                # if set([c[1] for c in cable_path]) in [set([c[1] for c in x]) for x in multi_cable_connections]:
+                #     continue
+                multi_cable_connections.append(cable_path)
     for cable_path in multi_cable_connections:
         link_id = max(link_ids) + 1  # dummy ID for a logical link
         link_ids.add(link_id)
         topology_dict['links'].append({
             'id': link_id,
-            'source': cable_path[0][0].device.id,
-            'target': cable_path[-1][2].device.id,
-            "srcIfName": if_shortname(cable_path[0][0].name),
-            "tgtIfName": if_shortname(cable_path[-1][2].name),
+            'source': cable_path[0][0][0].device.id,
+            'target': cable_path[-1][-1][0].device.id,
+            "srcIfName": if_shortname(cable_path[0][0][0].name),
+            "tgtIfName": if_shortname(cable_path[-1][-1][0].name),
             "isLogicalMultiCable": True,
         })
 
@@ -513,7 +526,10 @@ class TopologyView(PermissionRequiredMixin, View):
             else:
                 topology_dict, device_roles, multi_cable_connections, device_tags = get_vlan_topology(self.queryset, vlans)
 
+        file_icons = get_file_icons()
+
         return render(request, self.template_name, {
+            'file_icons': list(file_icons),
             'source_data': json.dumps(topology_dict),
             'display_unconnected': layout_context.get('displayUnconnected') or DISPLAY_UNCONNECTED,
             'device_roles': device_roles,
@@ -523,10 +539,7 @@ class TopologyView(PermissionRequiredMixin, View):
             'display_logical_multicable_links': DISPLAY_LOGICAL_MULTICABLE_LINKS,
             'display_passive_devices': layout_context.get('displayPassiveDevices') or DISPLAY_PASSIVE_DEVICES,
             'initial_layout': INITIAL_LAYOUT,
-            'filter_form': forms.TopologyFilterForm(
-                layout_context.get('requestGET') or request.GET,
-                label_suffix=''
-            ),
+            'filter_form': forms.TopologyFilterForm(request.GET, label_suffix=''),
             'load_saved_filter_form': forms.LoadSavedTopologyFilterForm(
                 request.GET,
                 label_suffix='',
