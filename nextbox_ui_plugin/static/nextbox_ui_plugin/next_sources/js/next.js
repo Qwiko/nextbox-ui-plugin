@@ -16359,30 +16359,30 @@ var nx = {
                   ],
                 },
               },
-              {
-                tag: "li",
-                props: { class: "n-topology-nav-zoom" },
-                content: [
-                  {
-                    name: "zoomin",
-                    tag: "span",
-                    props: {
-                      class: "n-topology-nav-zoom-in n-icon-zoomin-plus",
-                      title: "Zoom out",
-                    },
-                    events: { touchend: "{#_in}" },
-                  },
-                  {
-                    name: "zoomout",
-                    tag: "span",
-                    props: {
-                      class: "n-topology-nav-zoom-out n-icon-zoomout-minus",
-                      title: "Zoom in",
-                    },
-                    events: { touchend: "{#_out}" },
-                  },
-                ],
-              },
+              // {
+              //   tag: "li",
+              //   props: { class: "n-topology-nav-zoom" },
+              //   content: [
+              //     {
+              //       name: "zoomin",
+              //       tag: "span",
+              //       props: {
+              //         class: "n-topology-nav-zoom-in n-icon-zoomin-plus",
+              //         title: "Zoom out",
+              //       },
+              //       events: { touchend: "{#_in}" },
+              //     },
+              //     {
+              //       name: "zoomout",
+              //       tag: "span",
+              //       props: {
+              //         class: "n-topology-nav-zoom-out n-icon-zoomout-minus",
+              //         title: "Zoom in",
+              //       },
+              //       events: { touchend: "{#_out}" },
+              //     },
+              //   ],
+              // },
               {
                 tag: "li",
                 name: "zoomselection",
@@ -16413,136 +16413,136 @@ var nx = {
                 },
                 events: { click: "{#_agr}", touchend: "{#_agr}" },
               },
-              {
-                tag: "li",
-                name: "fullscreen",
-                props: {
-                  class: "n-topology-nav-full n-icon-fullscreen",
-                  title: "Enter full screen mode",
-                },
-                events: { click: "{#_full}", touchend: "{#_full}" },
-              },
-              {
-                tag: "li",
-                name: "setting",
-                content: [
-                  {
-                    name: "icon",
-                    tag: "span",
-                    props: {
-                      class: "n-topology-nav-setting-icon n-icon-viewsetting",
-                    },
-                    events: {
-                      mouseenter: "{#_openPopover}",
-                      mouseleave: "{#_closePopover}",
-                    },
-                  },
-                  {
-                    name: "settingPopover",
-                    type: "nx.ui.Popover",
-                    props: {
-                      title: "Topology Setting",
-                      direction: "right",
-                      lazyClose: !0,
-                    },
-                    content: [
-                      { tag: "h5", content: "Display icons as dots :" },
-                      {
-                        tag: "label",
-                        content: [
-                          {
-                            tag: "input",
-                            props: {
-                              type: "radio",
-                              checked:
-                                "{#showIcon,converter=inverted,direction=<>}",
-                            },
-                          },
-                          { tag: "span", content: "Always" },
-                        ],
-                        props: { class: "radio-inline" },
-                      },
-                      {
-                        tag: "label",
-                        content: [
-                          {
-                            tag: "input",
-                            props: {
-                              type: "radio",
-                              checked: "{#showIcon,direction=<>}",
-                            },
-                          },
-                          { tag: "span", content: "Auto-resize" },
-                        ],
-                        props: { class: "radio-inline" },
-                      },
-                      {
-                        name: "displayLabelSetting",
-                        tag: "h5",
-                        content: [
-                          { tag: "span", content: "Display Label : " },
-                          {
-                            tag: "input",
-                            props: {
-                              class: "toggleLabelCheckBox",
-                              type: "checkbox",
-                              checked: !0,
-                            },
-                            events: {
-                              click: "{#_toggleNodeLabel}",
-                              touchend: "{#_toggleNodeLabel}",
-                            },
-                          },
-                        ],
-                      },
-                      { tag: "h5", content: "Theme :" },
-                      {
-                        props: { class: "btn-group" },
-                        content: [
-                          {
-                            tag: "button",
-                            props: { class: "btn btn-default", value: "blue" },
-                            content: "Blue",
-                          },
-                          {
-                            tag: "button",
-                            props: { class: "btn btn-default", value: "green" },
-                            content: "Green",
-                          },
-                          {
-                            tag: "button",
-                            props: { class: "btn btn-default", value: "dark" },
-                            content: "Dark",
-                          },
-                          {
-                            tag: "button",
-                            props: { class: "btn btn-default", value: "slate" },
-                            content: "Slate",
-                          },
-                          {
-                            tag: "button",
-                            props: {
-                              class: "btn btn-default",
-                              value: "yellow",
-                            },
-                            content: "Yellow",
-                          },
-                        ],
-                        events: {
-                          click: "{#_switchTheme}",
-                          touchend: "{#_switchTheme}",
-                        },
-                      },
-                      { name: "customize" },
-                    ],
-                    events: {
-                      open: "{#_openSettingPanel}",
-                      close: "{#_closeSettingPanel}",
-                    },
-                  },
-                ],
-                props: { class: "n-topology-nav-setting" },
-              },
+              // {
+              //   tag: "li",
+              //   name: "fullscreen",
+              //   props: {
+              //     class: "n-topology-nav-full n-icon-fullscreen",
+              //     title: "Enter full screen mode",
+              //   },
+              //   events: { click: "{#_full}", touchend: "{#_full}" },
+              // },
+              // {
+              //   tag: "li",
+              //   name: "setting",
+                // content: [
+                //   {
+                //     name: "icon",
+                //     tag: "span",
+                //     props: {
+                //       class: "n-topology-nav-setting-icon n-icon-viewsetting",
+                //     },
+                //     events: {
+                //       mouseenter: "{#_openPopover}",
+                //       mouseleave: "{#_closePopover}",
+                //     },
+                //   },
+                //   {
+                //     name: "settingPopover",
+                //     type: "nx.ui.Popover",
+                //     props: {
+                //       title: "Topology Setting",
+                //       direction: "right",
+                //       lazyClose: !0,
+                //     },
+                //     content: [
+                //       { tag: "h5", content: "Display icons as dots :" },
+                //       {
+                //         tag: "label",
+                //         content: [
+                //           {
+                //             tag: "input",
+                //             props: {
+                //               type: "radio",
+                //               checked:
+                //                 "{#showIcon,converter=inverted,direction=<>}",
+                //             },
+                //           },
+                //           { tag: "span", content: "Always" },
+                //         ],
+                //         props: { class: "radio-inline" },
+                //       },
+                //       {
+                //         tag: "label",
+                //         content: [
+                //           {
+                //             tag: "input",
+                //             props: {
+                //               type: "radio",
+                //               checked: "{#showIcon,direction=<>}",
+                //             },
+                //           },
+                //           { tag: "span", content: "Auto-resize" },
+                //         ],
+                //         props: { class: "radio-inline" },
+                //       },
+                //       {
+                //         name: "displayLabelSetting",
+                //         tag: "h5",
+                //         content: [
+                //           { tag: "span", content: "Display Label : " },
+                //           {
+                //             tag: "input",
+                //             props: {
+                //               class: "toggleLabelCheckBox",
+                //               type: "checkbox",
+                //               checked: !0,
+                //             },
+                //             events: {
+                //               click: "{#_toggleNodeLabel}",
+                //               touchend: "{#_toggleNodeLabel}",
+                //             },
+                //           },
+                //         ],
+                //       },
+                //       { tag: "h5", content: "Theme :" },
+                //       {
+                //         props: { class: "btn-group" },
+                //         content: [
+                //           {
+                //             tag: "button",
+                //             props: { class: "btn btn-default", value: "blue" },
+                //             content: "Blue",
+                //           },
+                //           {
+                //             tag: "button",
+                //             props: { class: "btn btn-default", value: "green" },
+                //             content: "Green",
+                //           },
+                //           {
+                //             tag: "button",
+                //             props: { class: "btn btn-default", value: "dark" },
+                //             content: "Dark",
+                //           },
+                //           {
+                //             tag: "button",
+                //             props: { class: "btn btn-default", value: "slate" },
+                //             content: "Slate",
+                //           },
+                //           {
+                //             tag: "button",
+                //             props: {
+                //               class: "btn btn-default",
+                //               value: "yellow",
+                //             },
+                //             content: "Yellow",
+                //           },
+                //         ],
+                //         events: {
+                //           click: "{#_switchTheme}",
+                //           touchend: "{#_switchTheme}",
+                //         },
+                //       },
+                //       { name: "customize" },
+                //     ],
+                //     events: {
+                //       open: "{#_openSettingPanel}",
+                //       close: "{#_closeSettingPanel}",
+                //     },
+                //   },
+                // ],
+              //   props: { class: "n-topology-nav-setting" },
+              // },
             ],
           },
         ],
@@ -16550,12 +16550,13 @@ var nx = {
       methods: {
         init: function (a) {
           this.inherited(a),
-            this.view("settingPopover")
-              .view()
-              .dom()
-              .addClass("n-topology-setting-panel"),
-            window.top.frames.length &&
-              this.view("fullscreen").style().set("display", "none");
+            // this.view("settingPopover")
+            //   .view()
+            //   .dom()
+            //   .addClass("n-topology-setting-panel"),
+            window.top.frames.length
+            //&&
+             // this.view("fullscreen").style().set("display", "none");
         },
         attach: function (a) {
           this.inherited(a);

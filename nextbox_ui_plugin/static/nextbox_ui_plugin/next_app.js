@@ -62,8 +62,8 @@
         linkInstanceClass: 'CustomLinkClass'
     });
 
-    //register icons
-    for (icon of icons) {
+    //register extra_icons
+    for (icon of extra_icons) {
         topo.registerIcon(icon, "/static/nextbox_ui_plugin/img/"+icon+".png", 34, 34);
     }
     
@@ -76,15 +76,6 @@
                 // Read topology data from variable
                 topo.data(topologyData);
                 
-                // set initial layer alignment direction
-                if (topologyData["nodes"].length > 0 & (initialLayout == 'vertical' | initialLayout == 'horizontal')) {
-                    var layout = topo.getLayout('hierarchicalLayout');
-                    layout.direction(initialLayout);
-                    layout.levelBy(function(node, model) {
-                    return model.get('layerSortPreference');
-                    });
-                    topo.activateLayout('hierarchicalLayout');
-                };
                 // Attach it to the document
                 topo.attach(this);
             }
@@ -182,19 +173,19 @@
                 name: 'source',
                 type: 'nx.graphic.Text',
                 props: {
-                    'class': 'sourcelabel',
+                    'class': 'nav-link-text',
                     'alignment-baseline': 'text-after-edge',
                     'dominant-baseline': 'middle',
-                    // "style": "fill: #8d092a"
+                    "style": "fill: currentColor",
                 }
             }, {
                 name: 'target',
                 type: 'nx.graphic.Text',
                 props: {
-                    'class': 'targetlabel',
+                    'class': 'nav-link-text',
                     'alignment-baseline': 'text-after-edge',
                     'dominant-baseline': 'middle',
-                    // "style": "fill: #8d092a"
+                    "style": "fill: currentColor",
                 }
             });
             
@@ -215,7 +206,7 @@
 
                 angle_rad = Math.PI / 180 * Math.abs(angle)
                 
-                x_offset = Math.abs(Math.sin(angle_rad*2)) * 4
+                x_offset = Math.abs(Math.sin(angle_rad*2)) * 12
                 
 
                 if (this.sourcelabel()) {
@@ -234,6 +225,7 @@
                     }
                     
                     y = point.y + y_offset
+                    
                     el.set('x', x);
                     el.set('y', y);
                     el.set('text', this.sourcelabel());
@@ -256,7 +248,6 @@
                     }
 
                     y = point.y + y_offset
-
                     el.set('x', x);
                     el.set('y', y);
                     el.set('text', this.targetlabel());
@@ -266,105 +257,79 @@
         }
     });
 
-    var currentLayout = initialLayout;
+    getCheckedValue = function (id) {
+        element = document.getElementById(id)
+        return element.checked
+    }
 
-    horizontal = function() {
-        if (currentLayout === 'horizontal') {
-            return;
-        };
-        if (topo.graph().getData()["nodes"].length < 1) {
-            return;
-        };
-        currentLayout = 'horizontal';
-        var layout = topo.getLayout('hierarchicalLayout');
-        layout.direction('horizontal');
-        layout.levelBy(function(node, model) {
-            return model.get('layerSortPreference');
-        });
-        topo.activateLayout('hierarchicalLayout');
-    };
+    getRoleIds = function () {
+        elements = document.querySelectorAll(".role")
+        ids = Array.from(elements).map(ele => ele.id)
+        return ids
+    }
 
-    vertical = function() {
-        if (currentLayout === 'vertical') {
-            return;
-        };
-        var currentTopoData = topo.graph().getData();
-        if (currentTopoData < 1) {
-            return;
-        };
-        currentLayout = 'vertical';
-        var layout = topo.getLayout('hierarchicalLayout');
-        layout.direction('vertical');
-        layout.levelBy(function(node, model) {
-          return model.get('layerSortPreference');
-        });
-        topo.activateLayout('hierarchicalLayout');
-    };
-    showHideUnconnected = function() {
-        let unconnectedNodes = []
-        topologyData['nodes'].forEach(function(node){
-            var isUnconnected = true
-            topologyData['links'].forEach(function(link){
-                if (link['source'] === node['id'] | link['target'] === node['id']) {
-                    isUnconnected = false;
-                    return;
+    getTagIds = function () {
+        elements = document.querySelectorAll(".tag")
+        ids = Array.from(elements).map(ele => ele.id)
+        return ids
+    }
+
+    topologyFilter = function() {
+        passive = getCheckedValue("passive")
+        unconnected = getCheckedValue("unconnected")
+
+        roleIds = getRoleIds()
+        tagIds = getTagIds()
+
+        //Loop over nodes
+        for (var node of topologyData['nodes']) {
+            if (node.isPassive) {
+                topo.graph().getVertex(node.id).visible(passive);
+                // If node is hidded by being passive, continue and skip other rules
+                if (!passive) continue
+            };
+            
+
+            if (topologyData['links'].filter(link => link['source'] === node.id | link['target'] === node.id).length == 0) {
+                //If no links are connected to this node, considered unconnected.
+                topo.graph().getVertex(node.id).visible(unconnected);
+                // If node is hidded by being unconnected, continue and skip other rules
+                if (!unconnected) continue 
+            }
+
+            //Loop over device roles
+            for (var roleId of roleIds) {
+                checkedValue = getCheckedValue(roleId)
+                if (node['deviceRole'] == roleId) {
+                    topo.graph().getVertex(node.id).visible(checkedValue);
+                    break
                 };
-            });
-            if (isUnconnected == true) {
-                unconnectedNodes.push(node['id'])
-            };
-        });
+            }
 
-        if (unconnectedNodes.length > 0) {
-            unconnectedNodes.forEach(function(nodeID) {
-                topo.graph().getVertex(nodeID).visible(displayUnconnected);
-            });
-            displayUnconnected = !displayUnconnected;
-        };
-    };
-
-    showHideDeviceRoles = function(deviceRole, isVisible) {
-        let devicesByRole = []
-        topologyData['nodes'].forEach(function(node){
-            if (node['deviceRole'] == deviceRole) {
-                topo.graph().getVertex(node['id']).visible(isVisible);
-            };
-        });
-    };
-
-    showHideDevicesByTag = function(deviceTag, isVisible) {
-        topologyData['nodes'].forEach(function(node){
+            //Loop over device tags
             if (node['tags'].length < 1) {
-                return;
-            };
-            node['tags'].forEach(function(tag){
-                if (tag == deviceTag) {
-                    topo.graph().getVertex(node['id']).visible(isVisible);
-                    return;
-                };
-            });
-        });
-    };
-
-    showHideLogicalMultiCableLinks = function() {
-        topologyData['links'].forEach(function(link){
+                continue
+            }
+            for (var tagId of tagIds) {
+                checkedValue = getCheckedValue(tagId)
+                
+                for (var tag of node.tags) {
+                    if (tag == tagId) {
+                        topo.graph().getVertex(node.id).visible(checkedValue);
+                        break
+                    };
+                }
+            }
+        }
+        //Loop over links
+        for (var link of topologyData['links']) {
+            //Logical multilink cable visibility
             if (link['isLogicalMultiCable']) {
-                topo.getLink(link['id']).visible(displayLogicalMultiCableLinks);
+                topo.getLink(link['id']).visible(!passive);
             };
-        });
-        displayLogicalMultiCableLinks = !displayLogicalMultiCableLinks
-    };
+        }  
+    }
 
-    showHidePassiveDevices = function() {
-        topologyData['nodes'].forEach(function(node){
-            if ('isPassive' in node) {
-                if (node['isPassive']) {
-                    topo.graph().getVertex(node['id']).visible(displayPassiveDevices);
-                };
-            };
-        });
-        displayPassiveDevices = !displayPassiveDevices
-    };
 
     saveView = function (topoSaveURI, CSRFToken) {
         var topoSaveName = document.getElementById('topoSaveName').value.trim();
@@ -376,7 +341,6 @@
             'name': topoSaveName,
             'topology': JSON.stringify(topo.data()),
             'layout_context': JSON.stringify({
-                'initialLayout': initialLayout,
                 'displayUnconnected': !displayUnconnected,
                 'undisplayedRoles': undisplayedRoles,
                 'undisplayedDeviceTags': undisplayedDeviceTags,
@@ -395,23 +359,12 @@
     };
 
     topo.on('topologyGenerated', function(){
-        showHideUnconnected();
-        showHidePassiveDevices();
-        if (displayPassiveDevices) {
-            displayLogicalMultiCableLinks = true;
-        };
-        showHideLogicalMultiCableLinks();
-        undisplayedRoles.forEach(function(deviceRole){
-            showHideDeviceRoles(deviceRole, false);
-        });
-        undisplayedDeviceTags.forEach(function(deviceTag){
-            showHideDevicesByTag(deviceTag, false);
-        });
-        topologySavedData['nodes'].forEach(function(node){
-            topo.graph().getVertex(node['id']).position({'x': node.x, 'y': node.y});
-        });
+        topologyFilter()
+        // topologySavedData['nodes'].forEach(function(node){
+        //     topo.graph().getVertex(node['id']).position({'x': node.x, 'y': node.y});
+        // });
     });
-    
+
     var shell = new Shell();
     shell.on('resize', function() {
         topo && topo.adaptToContainer();
@@ -419,3 +372,15 @@
     // Run the application
     shell.start();
 })(nx);
+
+// Function to add eventlistener to dropdown buttons
+// This is to properly use stopPropagation so the dropdown does not close onclick
+(function () {
+    var layer_inputs = document.getElementsByClassName("layer_input");
+    function stopPropagation(event) {
+        event.stopPropagation();
+    }
+    for (var i = 0; i < layer_inputs.length; i++) {
+        layer_inputs[i].addEventListener('click', stopPropagation, false);
+    }
+})();

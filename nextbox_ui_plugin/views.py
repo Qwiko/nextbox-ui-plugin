@@ -9,32 +9,32 @@ from . import forms, filters
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.conf import settings
 from packaging import version
+from users.models import UserConfig
 import json
 import re
 
 
 # Default NeXt UI icons
-SUPPORTED_ICONS = {
-    'switch',
-    'router',
-    'firewall',
-    'wlc',
-    'unknown',
-    'server',
-    'phone',
-    'nexus5000',
-    'ipphone',
-    'host',
-    'camera',
-    'accesspoint',
-    'groups',
-    'groupm',
-    'groupl',
-    'cloud',
-    'unlinked',
-    'hostgroup',
-    'wirelesshost',
-}
+# 
+# switch
+# router
+# firewall
+# wlc
+# unknown
+# server
+# phone
+# nexus5000
+# ipphone
+# host
+# camera
+# accesspoint
+# groups
+# groupm
+# groupl
+# cloud
+# unlinked
+# hostgroup
+# wirelesshost
 
 # Topology layers would be sorted
 # in the same descending order
@@ -69,7 +69,8 @@ interface_full_name_map = {
     'Gi': 'GigabitEthernet',
     'Te': 'TenGigabitEthernet',
     '25Ge': ['TwentyFiveGigE', 'TwentyFiveGigabitEthernet'],
-    'Po': 'Port'
+    'Po': 'Port',
+    'Rs': 'Rear Splice'
 }
 
 
@@ -108,6 +109,8 @@ DEFAULT_ICON_ROLE_MAP = {
     'spine': 'switch',
     'access': 'switch',
     'access-switch': 'switch',
+    'access-point': 'accesspoint',
+    'firewall': 'firewall'
 }
 
 
@@ -128,7 +131,7 @@ DISPLAY_UNCONNECTED = PLUGIN_SETTINGS.get("DISPLAY_UNCONNECTED", True)
 
 # Defines whether logical links between end-devices for multi-cable hops
 # are displayed in addition to the physical cabling on the topology view by default or not.
-DISPLAY_LOGICAL_MULTICABLE_LINKS = PLUGIN_SETTINGS.get("DISPLAY_LOGICAL_MULTICABLE_LINKS", False)
+# DISPLAY_LOGICAL_MULTICABLE_LINKS = PLUGIN_SETTINGS.get("DISPLAY_LOGICAL_MULTICABLE_LINKS", False)
 
 # Defines whether passive devices
 # are displayed on the topology view by default or not.
@@ -145,14 +148,9 @@ UNDISPLAYED_DEVICE_TAGS = PLUGIN_SETTINGS.get("undisplayed_device_tags", tuple()
 SELECT_LAYERS_LIST_INCLUDE_DEVICE_TAGS = PLUGIN_SETTINGS.get("select_layers_list_include_device_tags", tuple())
 SELECT_LAYERS_LIST_EXCLUDE_DEVICE_TAGS = PLUGIN_SETTINGS.get("select_layers_list_exclude_device_tags", tuple())
 
-# Defines the initial layer alignment direction on the view
-INITIAL_LAYOUT = PLUGIN_SETTINGS.get("INITIAL_LAYOUT", 'auto')
-if INITIAL_LAYOUT not in ('vertical', 'horizontal', 'auto'):
-    INITIAL_LAYOUT = 'auto'
-
-
 def if_shortname(ifname):
     for key, values in interface_full_name_map.items():
+        # Support for list and individual items
         if not isinstance(values, list):
             values = [values]
         for value in values:
@@ -188,10 +186,10 @@ def get_icon_type(device_id):
     nb_device = Device.objects.get(id=device_id)
     if not nb_device:
         return 'unknown'
-    for tag in nb_device.tags.names():
-        if 'icon_' in tag:
-            if tag.replace('icon_', '') in SUPPORTED_ICONS:
-                return tag.replace('icon_', '')
+    # for tag in nb_device.tags.names():
+    #     if 'icon_' in tag:
+    #         if tag.replace('icon_', '') in SUPPORTED_ICONS:
+    #             return tag.replace('icon_', '')
     for model_base, icon_type in ICON_MODEL_MAP.items():
         if model_base in str(nb_device.device_type.model):
             return icon_type
@@ -206,7 +204,6 @@ def tag_is_hidden(tag):
         if re.search(tag_regex, tag):
             return True
     return False
-
 
 def filter_tags(tags):
     if not tags:
@@ -419,6 +416,7 @@ def get_topology(nb_devices_qs):
         elif isinstance(link.b_terminations[0], Interface):
             interface_side = link.b_terminations[0]
         trace_result = interface_side.trace()
+
         if not trace_result:
             continue
         cable_path = trace_result
@@ -426,19 +424,21 @@ def get_topology(nb_devices_qs):
         # identify segmented cable paths between end-devices
         if len(cable_path) < 2:
             continue
-        if isinstance(cable_path[0][0], Interface) and isinstance(cable_path[-1][2], Interface):
-            if set([c[1] for c in cable_path]) in [set([c[1] for c in x]) for x in multi_cable_connections]:
-                continue
-            multi_cable_connections.append(cable_path)
+        if (cable_path[0][0] and cable_path[-1][-1]):
+            if isinstance(cable_path[0][0][0], Interface) and isinstance(cable_path[-1][-1][0], Interface):
+                # TODO Don't know what this is doing at the moment
+                # if set([c[1] for c in cable_path]) in [set([c[1] for c in x]) for x in multi_cable_connections]:
+                #     continue
+                multi_cable_connections.append(cable_path)
     for cable_path in multi_cable_connections:
         link_id = max(link_ids) + 1  # dummy ID for a logical link
         link_ids.add(link_id)
         topology_dict['links'].append({
             'id': link_id,
-            'source': cable_path[0][0].device.id,
-            'target': cable_path[-1][2].device.id,
-            "srcIfName": if_shortname(cable_path[0][0].name),
-            "tgtIfName": if_shortname(cable_path[-1][2].name),
+            'source': cable_path[0][0][0].device.id,
+            'target': cable_path[-1][-1][0].device.id,
+            "srcIfName": if_shortname(cable_path[0][0][0].name),
+            "tgtIfName": if_shortname(cable_path[-1][-1][0].name),
             "isLogicalMultiCable": True,
         })
 
@@ -513,20 +513,22 @@ class TopologyView(PermissionRequiredMixin, View):
             else:
                 topology_dict, device_roles, multi_cable_connections, device_tags = get_vlan_topology(self.queryset, vlans)
 
+        extra_icons = {}
+
+        topology_settings = {
+            "settings": {
+                "unconnected": layout_context.get('displayUnconnected') or DISPLAY_UNCONNECTED,
+                "passive": layout_context.get('displayPassiveDevices') or DISPLAY_PASSIVE_DEVICES
+            },
+            "roles": list(device_roles),
+            "tags": list(device_tags)
+        }
+
         return render(request, self.template_name, {
+            'extra_icons': list(extra_icons),
             'source_data': json.dumps(topology_dict),
-            'display_unconnected': layout_context.get('displayUnconnected') or DISPLAY_UNCONNECTED,
-            'device_roles': device_roles,
-            'device_tags': device_tags,
-            'undisplayed_roles': list(UNDISPLAYED_DEVICE_ROLE_SLUGS),
-            'undisplayed_device_tags': list(UNDISPLAYED_DEVICE_TAGS),
-            'display_logical_multicable_links': DISPLAY_LOGICAL_MULTICABLE_LINKS,
-            'display_passive_devices': layout_context.get('displayPassiveDevices') or DISPLAY_PASSIVE_DEVICES,
-            'initial_layout': INITIAL_LAYOUT,
-            'filter_form': forms.TopologyFilterForm(
-                layout_context.get('requestGET') or request.GET,
-                label_suffix=''
-            ),
+            'topology_settings': topology_settings,
+            'filter_form': forms.TopologyFilterForm(request.GET, label_suffix=''),
             'load_saved_filter_form': forms.LoadSavedTopologyFilterForm(
                 request.GET,
                 label_suffix='',
