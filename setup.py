@@ -8,8 +8,8 @@ with open(path.join(top_level_directory, 'README.md'), encoding='utf-8') as file
 setup(
     name='nextbox_ui_plugin',
     version='0.9.3',
-    url='https://github.com/iDebugAll/nextbox-ui-plugin',
-    download_url='https://github.com/iDebugAll/nextbox-ui-plugin/archive/v0.9.2.tar.gz',
+    url='https://github.com/Qwiko/nextbox-ui-plugin',
+    #download_url='https://github.com/Qwiko/nextbox-ui-plugin/archive/v0.9.2.tar.gz',
     description='A topology visualization plugin for Netbox powered by NextUI Toolkit.',
     long_description=long_description,
     long_description_content_type='text/markdown',
