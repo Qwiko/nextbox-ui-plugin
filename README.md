@@ -279,8 +279,3 @@ The Plugin requires the following user permissions to access the topology view:
   - dcim | site   | Can read site
   - dcim | device | Can view device
   - dcim | cable  | Can view cable
-
-
-## Icons
-
-Custom Icons from [Flaticon](https://www.flaticon.com/free-icons).
