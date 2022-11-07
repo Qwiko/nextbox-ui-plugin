@@ -33,7 +33,8 @@
         },
         // Tooltip content settings
         tooltipManagerConfig: {
-            nodeTooltipContentClass: 'CustomNodeTooltip'
+            nodeTooltipContentClass: 'CustomNodeTooltip',
+            linkTooltipContentClass: 'CustomLinkTooltip'
         },
         // Link settings
         linkConfig: {
@@ -89,67 +90,126 @@
         },
         view: {
             content: [{
-                tag: 'div',
+                tag: 'h5',
                 content: [{
-                    tag: 'h5',
-                    content: [{
-                        tag: 'a',
-                        content: '{#node.model.name}',
-                        props: {"href": "{#node.model.dcimDeviceLink}", "target": "_blank", "rel": "noopener noreferrer"}
-                    }],
-                    props: {
-                        "style": "border-bottom: dotted 1px; font-size:90%; word-wrap:normal; color:#003688"
-                    }
+                    tag: 'a',
+                    content: '{#node.model.name}',
+                    props: {"href": "{#node.model.dcimDeviceLink}", "target": "_blank", "rel": "noopener noreferrer"}
+                }],
+                props: {
+                }
+            }, {
+                tag: 'p',
+                content: [
+                    {
+                    tag: 'label',
+                    content: 'IP: ',
                 }, {
-                    tag: 'p',
-                    content: [
-                        {
-                        tag: 'label',
-                        content: 'IP: ',
-                    }, {
-                        tag: 'label',
-                        content: '{#node.model.primaryIP}',
-                    }
-                    ],
-                    props: {
-                        "style": "font-size:80%;"
-                    }
-                },{
-                    tag: 'p',
-                    content: [
-                        {
-                        tag: 'label',
-                        content: 'Model: ',
-                    }, {
-                        tag: 'label',
-                        content: '{#node.model.model}',
-                    }
-                    ],
-                    props: {
-                        "style": "font-size:80%;"
-                    }
+                    tag: 'label',
+                    content: '{#node.model.primaryIP}',
+                }
+                ],
+                props: {
+                }
+            },{
+                tag: 'p',
+                content: [
+                    {
+                    tag: 'label',
+                    content: 'Model: ',
                 }, {
-                    tag: 'p',
-                    content: [{
-                        tag: 'label',
-                        content: 'S/N: ',
-                    }, {
-                        tag: 'label',
-                        content: '{#node.model.serial_number}',
-                    }],
-                    props: {
-                        "style": "font-size:80%; padding:0"
-                    }
-                },
-            ],
-            props: {
-                "style": "width: 150px;"
-            }
-        }]
+                    tag: 'label',
+                    content: '{#node.model.model}',
+                }
+                ],
+                props: {
+                }
+            }, {
+                tag: 'p',
+                content: [{
+                    tag: 'label',
+                    content: 'S/N: ',
+                }, {
+                    tag: 'label',
+                    content: '{#node.model.serial_number}',
+                }],
+                props: {
+                }
+            },
+        ],
+        props: {
+            "style": "width: 200px; font-size: 80%",
+        }
         }
     });
 
     nx.define('Tooltip.Node', nx.ui.Component, {
+        view: function(view){
+            view.content.push({
+            });
+            return view;
+        },
+        methods: {
+            attach: function(args) {
+                this.inherited(args);
+                this.model();
+            }
+        }
+    });
+
+    nx.define('CustomLinkTooltip', nx.ui.Component, {
+        properties: {
+            link: {},
+            topology: {}
+        },
+        view: {
+            content: [{
+                tag: 'h5',
+                content: [{
+                    tag: 'a',
+                    content: '{#link.model.id}',
+                    props: {"href": "{#link.model.dcimCableLink}", "target": "_blank", "rel": "noopener noreferrer"}
+                }],
+                props: {
+                }
+            },
+            {
+                tag: 'p',
+                content: [
+                    {
+                    tag: 'label',
+                    content: 'Source: ',
+                }, {
+                    tag: 'label',
+                    content: '{#link.model.srcFullName}',
+                }
+                ],
+                props: {
+                    
+                }
+            },{
+                tag: 'p',
+                content: [
+                    {
+                    tag: 'label',
+                    content: 'Target: ',
+                }, {
+                    tag: 'label',
+                    content: '{#link.model.tgtFullName}',
+                }
+                ],
+                props: {
+                    
+                }
+            },
+            ],
+            props: {
+                "style": "width: 200px; font-size: 80%",
+            }
+        }
+    });
+
+    nx.define('Tooltip.Link', nx.ui.Component, {
         view: function(view){
             view.content.push({
             });
@@ -206,7 +266,7 @@
 
                 angle_rad = Math.PI / 180 * Math.abs(angle)
                 
-                x_offset = Math.abs(Math.sin(angle_rad*2)) * 12
+                x_offset = Math.abs(Math.sin(angle_rad*2)) * 8
                 
 
                 if (this.sourcelabel()) {
@@ -341,6 +401,8 @@
             'name': topoSaveName,
             'topology': JSON.stringify(topo.data()),
             'layout_context': JSON.stringify({
+                // TODO
+                //Fix saveView with the latest settings
                 'displayUnconnected': !displayUnconnected,
                 'undisplayedRoles': undisplayedRoles,
                 'undisplayedDeviceTags': undisplayedDeviceTags,
