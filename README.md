@@ -2,6 +2,9 @@
 
 A topology visualization plugin for [NetBox](https://github.com/netbox-community/netbox) powered by [NextUI](https://developer.cisco.com/site/neXt/) Toolkit. Netbox v3.3.0+ is required.
 
+## Notice  
+**This plugin is being rebuild, please message me if you would like to see a specific functionality**
+
 # Installation
 
 General installation steps and considerations follow the [official guidelines](https://netbox.readthedocs.io/en/stable/plugins/).
@@ -108,32 +111,9 @@ By default, the Plugin orders devices on a visualized topology based their roles
 ```
 
 By default, the Plugin automatically tries to identify the device icon type based on following logic:
-1. 'icon_{icon_type}' tag in the Netbox Device tags.
-   Assign a tag to the device to manually control the displayed icon type (e.g. 'icon_router' or 'icon_switch').
-   Supported icon types:
-```
-{
-    'switch',
-    'router',
-    'firewall',
-    'wlc',
-    'unknown',
-    'server',
-    'phone',
-    'nexus5000',
-    'ipphone',
-    'host',
-    'camera',
-    'accesspoint',
-    'groups',
-    'groupm',
-    'groupl',
-    'cloud',
-    'unlinked',
-    'hostgroup',
-    'wirelesshost',
-}
-```
+Custom Icons can be added to /static/nextbox_ui_plugin/img.  
+Only supports png pictures, added
+
 2. If no valid 'icon_{icon_type}' tags found, the Plugin checks the default icon to device_type mapping. You can control this behavior with 'icon_model_map' dict. The Plugin checks for substring in a full device_type attribute. Default mapping:
 
 ```
@@ -200,10 +180,7 @@ The visibility control is currently implemented for specific device roles, devic
   Actual multi-cable connections between the end-devices a replaced by the direct logical connection once the passive devices are hidden. This logical direct link may be displayed regardless of the passive device visibility in addition to the cabling across patch panels if you set DISPLAY_LOGICAL_MULTICABLE_LINKS plugin parameter to True. DISPLAY_LOGICAL_MULTICABLE_LINKS is set to False by default. This parameter only affects the initial logical link visibility. With hidden passive devices, it is always being displayed.<br/>
 <br/>
 
-Device layers are ordered automatically by default. You can control this behavior with INITIAL_LAYOUT plugin parameter. Valid options are 'vertical', 'horizontal', and 'auto'.<br/>
-'auto' layout relies on NeXt UI dataprocessor best-effort algorithms. It spreads the Nodes across the view so they would be as distant from each other as possible. You may use it if the vertical and horizontal initial layout does not work properly in your browser (this is the issue to be fixed).
-
-
+Device layers are ordered automatically by default. <br/>
 
 ### Collect Static Files
 The Plugin contains static files for topology visualization. They should be served directly by the HTTP frontend. In order to collect them from the package to the Netbox static root directory use the following command:
@@ -302,3 +279,8 @@ The Plugin requires the following user permissions to access the topology view:
   - dcim | site   | Can read site
   - dcim | device | Can view device
   - dcim | cable  | Can view cable
+
+
+## Icons
+
+Custom Icons from [Flaticon](https://www.flaticon.com/free-icons).
