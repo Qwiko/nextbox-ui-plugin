@@ -6,24 +6,14 @@ from utilities.forms import (
     DynamicModelChoiceField
 )
 from .models import SavedTopology
-from dcim.models import Device, Site, Region
+from dcim.models import Device, Site, Region, Location
 from tenancy.models import Tenant
 from django.conf import settings
 from packaging import version
-
-NETBOX_CURRENT_VERSION = version.parse(settings.VERSION)
-
-if NETBOX_CURRENT_VERSION >= version.parse("2.11.0"):
-    from dcim.models import Location
-else:
-    from dcim.models import RackGroup as Location
-
-if NETBOX_CURRENT_VERSION >= version.parse("3.0") :
-    from django.utils.translation import gettext as _
+from django.utils.translation import gettext
 
 
 class TopologyFilterForm(BootstrapMixin, forms.Form):
-
     model = Device
 
     device_id = DynamicModelMultipleChoiceField(
@@ -62,12 +52,12 @@ class TopologyFilterForm(BootstrapMixin, forms.Form):
         to_field_name='id',
         null_option='None',
     )
-    if NETBOX_CURRENT_VERSION >= version.parse("3.0") :
-        device_id.label = _('Devices')
-        location_id.label = _('Location')
-        site_id.label = _('Sites')
-        vlan_id.label = _('Vlan')
-        region_id.label = _('Regions')
+    device_id.label = gettext('Devices')
+    location_id.label = gettext('Location')
+    site_id.label = gettext('Sites')
+    tenant_id.label = gettext('Tenants')
+    vlan_id.label = gettext('Vlan')
+    region_id.label = gettext('Regions')
 
 
 class LoadSavedTopologyFilterForm(BootstrapMixin, forms.Form):
