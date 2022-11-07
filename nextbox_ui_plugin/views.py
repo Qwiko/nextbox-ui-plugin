@@ -15,31 +15,26 @@ import re
 
 
 # Default NeXt UI icons
-
-
-
-SUPPORTED_ICONS = {
-    'access-switch',
-    'distribution-switch',
-    'power-feed',
-    'router',
-    'backup',
-    'firewall',
-    'power-panel',
-    'server',
-    'circuit',
-    'internal-switch',
-    'power-units',
-    'storage',
-    'connector',
-    'isp-cpe-material',
-    'provider-networks',
-    'wan-network',
-    'core-switch',
-    'non-racked-devices',
-    'role-unknown',
-    'wireless-ap'
-}
+# 
+# switch
+# router
+# firewall
+# wlc
+# unknown
+# server
+# phone
+# nexus5000
+# ipphone
+# host
+# camera
+# accesspoint
+# groups
+# groupm
+# groupl
+# cloud
+# unlinked
+# hostgroup
+# wirelesshost
 
 # Topology layers would be sorted
 # in the same descending order
@@ -74,7 +69,8 @@ interface_full_name_map = {
     'Gi': 'GigabitEthernet',
     'Te': 'TenGigabitEthernet',
     '25Ge': ['TwentyFiveGigE', 'TwentyFiveGigabitEthernet'],
-    'Po': 'Port'
+    'Po': 'Port',
+    'Rs': 'Rear Splice'
 }
 
 
@@ -105,17 +101,16 @@ DEFAULT_ICON_ROLE_MAP = {
     'edge-switch': 'switch',
     'edge-router': 'router',
     'core-router': 'router',
-    'core-switch': 'core-switch',
-    'distribution': 'distribution-switch',
+    'core-switch': 'switch',
+    'distribution': 'switch',
     'distribution-router': 'router',
-    'distribution-switch': 'distribution-switch',
-    'leaf': 'access-switch',
-    'spine': 'access-switch',
-    'access': 'access-switch',
-    'access-switch': 'access-switch',
-    'access-point': 'wireless-ap',
-    'patch-panel': 'connector',
-    'pdu': 'power-panel'
+    'distribution-switch': 'switch',
+    'leaf': 'switch',
+    'spine': 'switch',
+    'access': 'switch',
+    'access-switch': 'switch',
+    'access-point': 'accesspoint',
+    'firewall': 'firewall'
 }
 
 
@@ -136,7 +131,7 @@ DISPLAY_UNCONNECTED = PLUGIN_SETTINGS.get("DISPLAY_UNCONNECTED", True)
 
 # Defines whether logical links between end-devices for multi-cable hops
 # are displayed in addition to the physical cabling on the topology view by default or not.
-DISPLAY_LOGICAL_MULTICABLE_LINKS = PLUGIN_SETTINGS.get("DISPLAY_LOGICAL_MULTICABLE_LINKS", False)
+# DISPLAY_LOGICAL_MULTICABLE_LINKS = PLUGIN_SETTINGS.get("DISPLAY_LOGICAL_MULTICABLE_LINKS", False)
 
 # Defines whether passive devices
 # are displayed on the topology view by default or not.
@@ -153,14 +148,9 @@ UNDISPLAYED_DEVICE_TAGS = PLUGIN_SETTINGS.get("undisplayed_device_tags", tuple()
 SELECT_LAYERS_LIST_INCLUDE_DEVICE_TAGS = PLUGIN_SETTINGS.get("select_layers_list_include_device_tags", tuple())
 SELECT_LAYERS_LIST_EXCLUDE_DEVICE_TAGS = PLUGIN_SETTINGS.get("select_layers_list_exclude_device_tags", tuple())
 
-# Defines the initial layer alignment direction on the view
-INITIAL_LAYOUT = PLUGIN_SETTINGS.get("INITIAL_LAYOUT", 'auto')
-if INITIAL_LAYOUT not in ('vertical', 'horizontal', 'auto'):
-    INITIAL_LAYOUT = 'auto'
-
-
 def if_shortname(ifname):
     for key, values in interface_full_name_map.items():
+        # Support for list and individual items
         if not isinstance(values, list):
             values = [values]
         for value in values:
@@ -196,10 +186,10 @@ def get_icon_type(device_id):
     nb_device = Device.objects.get(id=device_id)
     if not nb_device:
         return 'unknown'
-    for tag in nb_device.tags.names():
-        if 'icon_' in tag:
-            if tag.replace('icon_', '') in SUPPORTED_ICONS:
-                return tag.replace('icon_', '')
+    # for tag in nb_device.tags.names():
+    #     if 'icon_' in tag:
+    #         if tag.replace('icon_', '') in SUPPORTED_ICONS:
+    #             return tag.replace('icon_', '')
     for model_base, icon_type in ICON_MODEL_MAP.items():
         if model_base in str(nb_device.device_type.model):
             return icon_type
@@ -214,9 +204,6 @@ def tag_is_hidden(tag):
         if re.search(tag_regex, tag):
             return True
     return False
-
-def get_file_icons():
-    return SUPPORTED_ICONS
 
 def filter_tags(tags):
     if not tags:
@@ -526,19 +513,21 @@ class TopologyView(PermissionRequiredMixin, View):
             else:
                 topology_dict, device_roles, multi_cable_connections, device_tags = get_vlan_topology(self.queryset, vlans)
 
-        file_icons = get_file_icons()
+        extra_icons = {}
+
+        topology_settings = {
+            "settings": {
+                "unconnected": layout_context.get('displayUnconnected') or DISPLAY_UNCONNECTED,
+                "passive": layout_context.get('displayPassiveDevices') or DISPLAY_PASSIVE_DEVICES
+            },
+            "roles": list(device_roles),
+            "tags": list(device_tags)
+        }
 
         return render(request, self.template_name, {
-            'file_icons': list(file_icons),
+            'extra_icons': list(extra_icons),
             'source_data': json.dumps(topology_dict),
-            'display_unconnected': layout_context.get('displayUnconnected') or DISPLAY_UNCONNECTED,
-            'device_roles': device_roles,
-            'device_tags': device_tags,
-            'undisplayed_roles': list(UNDISPLAYED_DEVICE_ROLE_SLUGS),
-            'undisplayed_device_tags': list(UNDISPLAYED_DEVICE_TAGS),
-            'display_logical_multicable_links': DISPLAY_LOGICAL_MULTICABLE_LINKS,
-            'display_passive_devices': layout_context.get('displayPassiveDevices') or DISPLAY_PASSIVE_DEVICES,
-            'initial_layout': INITIAL_LAYOUT,
+            'topology_settings': topology_settings,
             'filter_form': forms.TopologyFilterForm(request.GET, label_suffix=''),
             'load_saved_filter_form': forms.LoadSavedTopologyFilterForm(
                 request.GET,
