@@ -3,7 +3,7 @@
 A topology visualization plugin for [NetBox](https://github.com/netbox-community/netbox) powered by [NextUI](https://developer.cisco.com/site/neXt/) Toolkit. Netbox v3.3.0+ is required.
 
 ## Notice  
-**This plugin is being rebuild, please message me if you would like to see a specific functionality**
+**This plugin is being rebuilt, please add any feature request or bug reports in the Issues tab**
 
 # Installation
 
