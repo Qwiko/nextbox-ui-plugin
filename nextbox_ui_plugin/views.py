@@ -129,13 +129,9 @@ ICON_ROLE_MAP = MANUAL_ICON_ROLE_MAP or DEFAULT_ICON_ROLE_MAP
 # are displayed on the topology view by default or not.
 DISPLAY_UNCONNECTED = PLUGIN_SETTINGS.get("DISPLAY_UNCONNECTED", True)
 
-# Defines whether logical links between end-devices for multi-cable hops
-# are displayed in addition to the physical cabling on the topology view by default or not.
-# DISPLAY_LOGICAL_MULTICABLE_LINKS = PLUGIN_SETTINGS.get("DISPLAY_LOGICAL_MULTICABLE_LINKS", False)
-
 # Defines whether passive devices
 # are displayed on the topology view by default or not.
-# Passive devices are patch pannels, power distribution units, etc.
+# Passive devices are patch panels, power distribution units, etc.
 DISPLAY_PASSIVE_DEVICES = PLUGIN_SETTINGS.get("DISPLAY_PASSIVE_DEVICES", False)
 
 # Hide these roles by default
@@ -230,7 +226,6 @@ def filter_tags(tags):
     return tags
 
 def get_vlan_topology(nb_devices_qs, vlans):
-
     topology_dict = {'nodes': [], 'links': []}
     device_roles = set()
     all_device_tags = set()
@@ -399,14 +394,18 @@ def get_topology(nb_devices_qs):
     link_ids = set()
     for link in links:
         link_ids.add(link.id)
-        
+        cable_url = link.get_absolute_url()
         topology_dict['links'].append({
             'id': link.id,
             'source': link.a_terminations[0].device_id,
             'target': link.b_terminations[0].device_id,
+            'dcimCableLink': cable_url,
+            'srcFullName': ", ".join([a_link.name for a_link in link.a_terminations]),
             "srcIfName": ", ".join([if_shortname(a_link.name) for a_link in link.a_terminations]),
+            "tgtFullName": ", ".join([b_link.name for b_link in link.b_terminations]),
             "tgtIfName": ", ".join([if_shortname(b_link.name) for b_link in link.b_terminations])
         })
+
         if not (isinstance(link.a_terminations[0], Interface) or isinstance(link.b_terminations[0], Interface)):
             # Skip trace if none of cable terminations is an Interface
             continue
@@ -433,11 +432,15 @@ def get_topology(nb_devices_qs):
     for cable_path in multi_cable_connections:
         link_id = max(link_ids) + 1  # dummy ID for a logical link
         link_ids.add(link_id)
+        cable_url = cable_path[0][0][0].get_absolute_url() + "trace"
         topology_dict['links'].append({
             'id': link_id,
             'source': cable_path[0][0][0].device.id,
             'target': cable_path[-1][-1][0].device.id,
+            'dcimCableLink': cable_url,
+            'srcFullName': cable_path[0][0][0].name,
             "srcIfName": if_shortname(cable_path[0][0][0].name),
+            "tgtFullName": cable_path[-1][-1][0].name,
             "tgtIfName": if_shortname(cable_path[-1][-1][0].name),
             "isLogicalMultiCable": True,
         })
