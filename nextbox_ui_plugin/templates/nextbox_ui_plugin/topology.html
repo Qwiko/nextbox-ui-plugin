@@ -37,17 +37,30 @@ Topology Viewer
 {% block content-wrapper %}
 <div class="tab-content">
     <div class="tab-pane active" id="topology" role="tabpanel" aria-labelledby="topology-tab">
-
         <div class="panel-body">
-
             <div class="btn-group">
-                <button class="btn btn-primary " onclick='horizontal()'>Horizontal Layout</button>
-                <button class="btn btn-primary" onclick="vertical()">Vertical Layout</button>
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Settings
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <div class="dropdown-item layer_input">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" onclick="topologyFilter()" id="unconnected" type="checkbox" role="switch" value="unconnected" {{ topology_settings.settings.unconnected | yesno:"checked," }}>
+                                <label>Unconnected Devices</label>
+                            </div>
+                        </div>
+
+                        <div class="dropdown-item layer_input">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" onclick="topologyFilter()" id="passive" type="checkbox" role="switch" value="passive" {{ topology_settings.settings.passive | yesno:"checked," }}>
+                                <label>Passive Devices</label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
-
-            <input class="btn btn-primary" type="button" id="showHideUnconnectedButton" value="" onclick="return showHideUnconnectedButtonOnClick(this);" />
-            <input class="btn btn-primary" type="button" id="showHidePassiveDevicesButton" value="" onclick="return showHidePassiveDevicesButtonOnClick(this);" />
-
             <div class="btn-group">
                 <div class="dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -57,24 +70,24 @@ Topology Viewer
                         <h6 class="dropdown-header">Device Roles</h6>
                         <div class="dropdown-divider"></div>
 
-                        {% for device_role_slug, device_role_name, is_visible in device_roles %}
+                        {% for device_role_slug, device_role_name, is_visible in topology_settings.roles %}
                         <div class="dropdown-item layer_input">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" onclick="layerSelectorOnClick(this)" type="checkbox" role="switch" value="{{ device_role_slug }}" {{ is_visible|yesno:"checked," }}>
+                                <input class="form-check-input role" onclick="topologyFilter()" id="{{ device_role_slug }}" type="checkbox" role="switch" value="{{ device_role_slug }}" {{ is_visible | yesno:"checked," }}>
                                 <label>{{ device_role_name }}</label>
                             </div>
                         </div>
                         {% endfor %}
 
                         
-                        {% if device_tags %}
+                        {% if topology_settings.tags %}
                         <div class="dropdown-divider"></div>
                             <h6 class="dropdown-header">Device Tags</h6>
                             <div class="dropdown-divider"></div>
-                            {% for tag, is_visible in device_tags %}
+                            {% for tag, is_visible in topology_settings.tags %}
                             <div class="dropdown-item layer_input">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" onclick="layerSelectorOnClick(this)" type="checkbox" role="switch" value="{{ tag }}" {{ is_visible|yesno:"checked," }}>
+                                    <input class="form-check-input tag" onclick="topologyFilter()" id="{{ tag }}" type="checkbox" role="switch" value="{{ tag }}" {{ is_visible | yesno:"checked," }}>
                                     <label>{{ tag }}</label>
                                 </div>
                             </div>
@@ -134,31 +147,17 @@ Topology Viewer
 {% endblock content-wrapper %}
 
 {% block javascript %}
-
 <script type="text/javascript">
-    var displayUnconnected = {{ display_unconnected | yesno:"true,false" }};
-    var displayPassiveDevices = {{ display_passive_devices | yesno:"true,false" }};
-    var displayLogicalMultiCableLinks = {{ display_logical_multicable_links | yesno:"true,false" }};
-    var undisplayedRoles = {{ undisplayed_roles | safe }};
-    var undisplayedDeviceTags = {{ undisplayed_device_tags | safe }};
-    var topologyData = {{ source_data|safe }};
-    var icons = {{ file_icons | safe }};
-    var topologySavedData = {{ source_data|  safe }};
-    var initialLayout = '{{ initial_layout|safe }}';
+    var topologyData = {{ source_data | safe }};
+    var extra_icons = {{ extra_icons | safe }};
+    var topologySavedData = {{ source_data | safe }};
     var requestGET = {{ requestGET | safe }};
     var netbox_csrf_token = '{{ csrf_token }}'
     var topoSaveURI = '{% url 'plugins-api:nextbox_ui_plugin-api:savedtopology-list' %}';
     console.log(topologyData);
 </script>
 
-
 <script src="{% static 'nextbox_ui_plugin/next_app.js' %}"></script>
-<script src="{% static 'nextbox_ui_plugin/button_utils.js' %}"></script>
-
-<script type="text/javascript">
-    showHideUnconnectedButtonInitial();
-    showHidePassiveDevicesButtonInitial();
-</script>
 
 {% endblock %}
 
