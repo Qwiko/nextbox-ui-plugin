@@ -253,7 +253,6 @@
         },
         methods: {
             update: function() {
-                
                 this.inherited();
                 var el, point;
                 var line = this.line();
@@ -266,7 +265,7 @@
 
                 angle_rad = Math.PI / 180 * Math.abs(angle)
                 
-                x_offset = Math.abs(Math.sin(angle_rad*2)) * 8
+                x_offset = Math.abs(Math.sin(angle_rad*2)) * 6
                 
 
                 if (this.sourcelabel()) {
@@ -337,6 +336,7 @@
     topologyFilter = function() {
         passive = getCheckedValue("passive")
         unconnected = getCheckedValue("unconnected")
+        link_labels = getCheckedValue("link_labels")
 
         roleIds = getRoleIds()
         tagIds = getTagIds()
@@ -383,11 +383,15 @@
         }
         //Loop over links
         for (var link of topologyData['links']) {
+            document.querySelectorAll("#nx-ui-topology .nav-link-text").forEach(link_element => {
+                link_element.style.display = !link_labels ? "none": "inherit"
+            });
+            
             //Logical multilink cable visibility
             if (link['isLogicalMultiCable']) {
                 topo.getLink(link['id']).visible(!passive);
             };
-        }  
+        }
     }
 
 
