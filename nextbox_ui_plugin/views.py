@@ -134,6 +134,8 @@ DISPLAY_UNCONNECTED = PLUGIN_SETTINGS.get("DISPLAY_UNCONNECTED", True)
 # Passive devices are patch panels, power distribution units, etc.
 DISPLAY_PASSIVE_DEVICES = PLUGIN_SETTINGS.get("DISPLAY_PASSIVE_DEVICES", False)
 
+DISPLAY_LINK_LABELS = PLUGIN_SETTINGS.get("DISPLAY_LINK_LABELS", True)
+
 # Hide these roles by default
 UNDISPLAYED_DEVICE_ROLE_SLUGS = PLUGIN_SETTINGS.get("undisplayed_device_role_slugs", tuple())
 
@@ -224,91 +226,6 @@ def filter_tags(tags):
                 filtered_tags.append(tag)
         tags = filtered_tags
     return tags
-
-def get_vlan_topology(nb_devices_qs, vlans):
-    topology_dict = {'nodes': [], 'links': []}
-    device_roles = set()
-    all_device_tags = set()
-    multi_cable_connections = []
-    vlan = VLAN.objects.get(id=vlans)
-    interfaces = vlan.get_interfaces()
-    filtred_devices = [d.id for d in nb_devices_qs]
-    filtred_interfaces = []
-    for interface in interfaces:
-        if interface.is_connectable:
-            direct_device_id = interface.device.id
-            interface_trace = interface.trace()
-            if len(interface_trace) != 0:
-                termination_b_iface = interface_trace[-1][-1]
-                connected_device_id = termination_b_iface.device.id
-                if (direct_device_id in filtred_devices) or (direct_device_id in filtred_devices):
-                    filtred_interfaces.append(interface)
-
-    
-
-    devices = []
-    for interface in filtred_interfaces:
-        if interface.is_connectable:
-            if interface.device not in devices:
-                devices.append(interface.device)
-            interface_trace = interface.trace()
-            if len(interface_trace) != 0:
-                termination_b_iface = interface_trace[-1][-1]
-                if termination_b_iface.device not in devices:
-                    devices.append(termination_b_iface.device)
-         
-
-    device_ids = [d.id for d in devices]
-    for device in devices:
-        device_is_passive = False
-        device_url = device.get_absolute_url()
-        primary_ip = ''
-        if device.primary_ip:
-            primary_ip = str(device.primary_ip.address)
-        tags = [str(tag) for tag in device.tags.names()]
-        for tag in tags:
-            all_device_tags.add((tag, not tag_is_hidden(tag)))
-        topology_dict['nodes'].append({
-            'id': device.id,
-            'name': device.name,
-            'dcimDeviceLink': device_url,
-            'primaryIP': primary_ip,
-            'serial_number': device.serial,
-            'model': device.device_type.model,
-            'deviceRole': device.device_role.slug,
-            'layerSortPreference': get_node_layer_sort_preference(
-                device.device_role.slug
-                ),
-            'icon': get_icon_type(
-                device.id
-                ),
-            'isPassive': device_is_passive,
-            'tags': tags,
-            })
-        is_visible = not (device.device_role.slug in UNDISPLAYED_DEVICE_ROLE_SLUGS)
-        device_roles.add((device.device_role.slug, device.device_role.name, is_visible))
-    
-    mapped_links = []
-    for interface in filtred_interfaces:
-        if interface.is_connectable:
-            interface_trace = interface.trace()
-            if len(interface_trace) != 0:
-                source_cable = interface_trace[0]
-                dest_cable = interface_trace[-1]
-                mapping_link = [source_cable[0].device.id,dest_cable[-1].device.id]
-                if (mapping_link not in mapped_links) and (mapping_link.reverse() not in mapped_links):
-                    mapped_links.append(mapping_link)
-
-                    topology_dict['links'].append({
-                        'id': source_cable[1].id,
-                        'source': source_cable[0].device.id,
-                        'target': dest_cable[-1].device.id,
-                        "srcIfName": if_shortname(source_cable[0].name),
-                        "tgtIfName": if_shortname(dest_cable[-1].name),
-                        })
-
-    return topology_dict, device_roles, multi_cable_connections, list(all_device_tags)
-
 
 def get_topology(nb_devices_qs):
     topology_dict = {'nodes': [], 'links': []}
@@ -425,9 +342,9 @@ def get_topology(nb_devices_qs):
             continue
         if (cable_path[0][0] and cable_path[-1][-1]):
             if isinstance(cable_path[0][0][0], Interface) and isinstance(cable_path[-1][-1][0], Interface):
-                # TODO Don't know what this is doing at the moment
-                # if set([c[1] for c in cable_path]) in [set([c[1] for c in x]) for x in multi_cable_connections]:
-                #     continue
+                # Check if the cable is already added as a multicable connection
+                if [c[1] for c in cable_path] in [[c[1] for c in x] for x in multi_cable_connections + [list(reversed(x)) for x in multi_cable_connections]]:
+                    continue
                 multi_cable_connections.append(cable_path)
     for cable_path in multi_cable_connections:
         link_id = max(link_ids) + 1  # dummy ID for a logical link
@@ -502,26 +419,20 @@ class TopologyView(PermissionRequiredMixin, View):
         if saved_topology_id is not None:
             topology_dict, device_roles, device_tags, layout_context = get_saved_topology(saved_topology_id)
         else:
-            vlans = []
-            if 'vlan_id' in request.GET:
-                clean_request = request.GET.copy()
-                clean_request.pop('vlan_id')
-                vlans = request.GET.get('vlan_id')
-            else:
-                clean_request = request.GET.copy()
+            clean_request = request.GET.copy()
 
             self.queryset = self.filterset(clean_request, self.queryset).qs
-            if len(vlans) == 0:
-                topology_dict, device_roles, multi_cable_connections, device_tags = get_topology(self.queryset)
-            else:
-                topology_dict, device_roles, multi_cable_connections, device_tags = get_vlan_topology(self.queryset, vlans)
+
+            topology_dict, device_roles, multi_cable_connections, device_tags = get_topology(self.queryset)
+
 
         extra_icons = {}
 
         topology_settings = {
             "settings": {
-                "unconnected": layout_context.get('displayUnconnected') or DISPLAY_UNCONNECTED,
-                "passive": layout_context.get('displayPassiveDevices') or DISPLAY_PASSIVE_DEVICES
+                "unconnected": DISPLAY_UNCONNECTED,
+                "passive": DISPLAY_PASSIVE_DEVICES,
+                "link_labels": DISPLAY_LINK_LABELS
             },
             "roles": list(device_roles),
             "tags": list(device_tags)
