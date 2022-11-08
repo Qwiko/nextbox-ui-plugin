@@ -1,64 +1,84 @@
 from django import forms
-from ipam.models import VLAN
-from utilities.forms import (
-    BootstrapMixin,
-    DynamicModelMultipleChoiceField,
-    DynamicModelChoiceField
-)
-from .models import SavedTopology
-from dcim.models import Device, Site, Region, Location
-from tenancy.models import Tenant
 from django.conf import settings
-from packaging import version
-from django.utils.translation import gettext
 
+from django.utils.translation import gettext as _
 
-class TopologyFilterForm(BootstrapMixin, forms.Form):
+from dcim.models import Device, Site, Region, DeviceRole, Location, Rack
+
+from .models import SavedTopology
+
+from django import forms
+from dcim.choices import DeviceStatusChoices
+from tenancy.models import TenantGroup, Tenant
+from tenancy.forms import TenancyFilterForm
+from django.conf import settings
+from netbox.forms import NetBoxModelFilterSetForm
+from utilities.forms import (BootstrapMixin, TagFilterField, DynamicModelMultipleChoiceField, MultipleChoiceField)
+
+class TopologyFilterForm(TenancyFilterForm, NetBoxModelFilterSetForm):
     model = Device
-
-    device_id = DynamicModelMultipleChoiceField(
-        queryset=Device.objects.all(),
-        to_field_name='id',
-        required=False,
-        null_option='None',
+    fieldsets = (
+        # (None, ('q',)),
+        (None, ('tenant_group_id', 'tenant_id',)),
+        (None, ('region_id', 'site_id', 'location_id', 'rack_id')),
+        (None, ('device_role_id','id','status', )),
+        (None, ('tag', )),
     )
-    location_id = DynamicModelMultipleChoiceField(
-        queryset=Location.objects.all(),
+
+    region_id = DynamicModelMultipleChoiceField(
+        queryset=Region.objects.all(),
         required=False,
-        to_field_name='id',
-        null_option='None',
+        label=_('Region')
+    )
+    device_role_id = DynamicModelMultipleChoiceField(
+        queryset=DeviceRole.objects.all(),
+        required=False,
+        label=_('Device Role')
+    )
+    id = DynamicModelMultipleChoiceField(
+        queryset=Device.objects.all(),
+        required=False,
+        label=_('Device'),
+        query_params={
+            'location_id' : '$location_id',
+            'region_id': '$region_id',
+            'site_id': '$site_id',
+            'role_id': '$device_role_id',
+        },
     )
     site_id = DynamicModelMultipleChoiceField(
         queryset=Site.objects.all(),
         required=False,
-        to_field_name='id',
-        null_option='None',
+        query_params={
+            'region_id': '$region_id',
+        },
+        label=_('Site')
     )
-    tenant_id = DynamicModelMultipleChoiceField(
-        queryset=Tenant.objects.all(),
+    location_id = DynamicModelMultipleChoiceField(
+        queryset=Location.objects.all(),
         required=False,
-        to_field_name='id',
-        null_option='None',
+        query_params={
+            'region_id': '$region_id',
+            'site_id': '$site_id',
+        },
+        label=_('Location')
     )
-    vlan_id = DynamicModelChoiceField(
-        queryset=VLAN.objects.all(),
+    rack_id = DynamicModelMultipleChoiceField(
+        queryset=Rack.objects.all(),
         required=False,
-        to_field_name='id',
-        null_option='None',
+        query_params={
+            'region_id': '$region_id',
+            'site_id': '$site_id',
+            'location_id': '$location_id',
+        },
+        label=_('Rack')
     )
-    region_id = DynamicModelMultipleChoiceField(
-        queryset=Region.objects.all(),
+    status = MultipleChoiceField(
+        choices=DeviceStatusChoices,
         required=False,
-        to_field_name='id',
-        null_option='None',
+        label=_("Device Status")
     )
-    device_id.label = gettext('Devices')
-    location_id.label = gettext('Location')
-    site_id.label = gettext('Sites')
-    tenant_id.label = gettext('Tenants')
-    vlan_id.label = gettext('Vlan')
-    region_id.label = gettext('Regions')
-
+    tag = TagFilterField(model)
 
 class LoadSavedTopologyFilterForm(BootstrapMixin, forms.Form):
 

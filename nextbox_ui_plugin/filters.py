@@ -1,36 +1,52 @@
 import django_filters
-from dcim.models import Device, Site, Region
-from tenancy.models import Tenant
-from django.conf import settings
-from packaging import version
-from dcim.models import Location
 
-class TopologyFilterSet(django_filters.FilterSet):
+from dcim.models import Device, DeviceRole, Region, Site, Location, Rack
+from dcim.choices import DeviceStatusChoices
 
-    device_id = django_filters.ModelMultipleChoiceFilter(
-        queryset=Device.objects.all(),
-        to_field_name='id',
-        field_name='id',
-        label='Device (ID)',
+from netbox.filtersets import NetBoxModelFilterSet
+
+from tenancy.models import TenantGroup, Tenant
+from tenancy.filtersets import TenancyFilterSet
+
+from utilities.filters import TreeNodeMultipleChoiceFilter
+
+
+class TopologyFilterSet(TenancyFilterSet, NetBoxModelFilterSet):
+    q = django_filters.CharFilter(
+        method='search',
+        label='Search',
     )
-    location_id = django_filters.ModelMultipleChoiceFilter(
-        queryset=Location.objects.all(),
-        label='Location (ID)',
+    device_role_id = django_filters.ModelMultipleChoiceFilter(
+        field_name='device_role_id',
+        queryset=DeviceRole.objects.all(),
+        label='Role (ID)',
+    )
+    region_id = TreeNodeMultipleChoiceFilter(
+        queryset=Region.objects.all(),
+        field_name='site__region',
+        lookup_expr='in',
+        label='Region (ID)',
     )
     site_id = django_filters.ModelMultipleChoiceFilter(
         queryset=Site.objects.all(),
         label='Site (ID)',
     )
-    tenant_id = django_filters.ModelMultipleChoiceFilter(
-        queryset=Tenant.objects.all(),
-        label='Tenant (ID)',
+    location_id = TreeNodeMultipleChoiceFilter(
+        queryset=Location.objects.all(),
+        field_name='location',
+        lookup_expr='in',
+        label='Location (ID)',
     )
-    region_id = django_filters.ModelMultipleChoiceFilter(
-        queryset=Region.objects.all(),
-        field_name='site__region',
-        label='Region (ID)',
+    rack_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Rack.objects.all(),
+        field_name='rack_id',
+        label='Rack (ID)',
     )
-
+    status = django_filters.MultipleChoiceFilter(
+        choices=DeviceStatusChoices,
+        null_value=None,
+    )
+    
     class Meta:
         model = Device
-        fields = ['id', 'name', ]
+        fields = ['id', 'name']

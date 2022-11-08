@@ -46,15 +46,22 @@ Topology Viewer
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                         <div class="dropdown-item layer_input">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" onclick="topologyFilter()" id="unconnected" type="checkbox" role="switch" value="unconnected" {{ topology_settings.settings.unconnected | yesno:"checked," }}>
+                                <input class="form-check-input" onclick="topologyFilter()" id="unconnected" type="checkbox" role="switch" {{ topology_settings.settings.unconnected | yesno:"checked," }}>
                                 <label>Unconnected Devices</label>
                             </div>
                         </div>
 
                         <div class="dropdown-item layer_input">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" onclick="topologyFilter()" id="passive" type="checkbox" role="switch" value="passive" {{ topology_settings.settings.passive | yesno:"checked," }}>
+                                <input class="form-check-input" onclick="topologyFilter()" id="passive" type="checkbox" role="switch" {{ topology_settings.settings.passive | yesno:"checked," }}>
                                 <label>Passive Devices</label>
+                            </div>
+                        </div>
+
+                        <div class="dropdown-item layer_input">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" onclick="topologyFilter()" id="link_labels" type="checkbox" role="switch" {{ topology_settings.settings.link_labels | yesno:"checked," }}>
+                                <label>Show Link Labels</label>
                             </div>
                         </div>
                     </div>
@@ -66,7 +73,9 @@ Topology Viewer
                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Select Layers
                     </button>
+                    
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        {% if topology_settings.roles %}
                         <h6 class="dropdown-header">Device Roles</h6>
                         <div class="dropdown-divider"></div>
 
@@ -78,7 +87,7 @@ Topology Viewer
                             </div>
                         </div>
                         {% endfor %}
-
+                        {% endif %}
                         
                         {% if topology_settings.tags %}
                         <div class="dropdown-divider"></div>
