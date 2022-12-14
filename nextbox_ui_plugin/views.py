@@ -3,7 +3,6 @@
 from django.shortcuts import render
 from django.views.generic import View
 from dcim.models import Cable, Device, Interface, DeviceRole, PowerFeed
-from ipam.models import VLAN
 from .models import SavedTopology
 from . import forms, filters
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -237,7 +236,7 @@ def get_topology(nb_devices_qs):
     links = []
     device_ids = [d.id for d in nb_devices_qs]
     for nb_device in nb_devices_qs:
-        device_is_passive = False
+        device_is_passive = True
         device_url = nb_device.get_absolute_url()
         primary_ip = ''
         if nb_device.primary_ip:
@@ -252,27 +251,17 @@ def get_topology(nb_devices_qs):
         # Device is considered passive if it has no linked Interfaces.
         # Passive cabling devices use Rear and Front Ports.
         # Check if any connected link is Interface.
-        # If not found it will default to device_is_passive = true
-        if links_from_device:
-            for link in links_from_device:
+        # If not found it will default to device_is_passive = True
+        if links_from_device or links_to_device:
+            # Combine both arrays in to one and check all interfaces at the same time.
+            # TODO Change this behaivior with cable_end
+            for link in links_from_device + links_to_device:
                 for ab_link in link.a_terminations + link.b_terminations:
                     if isinstance(ab_link, Interface) and ab_link.device.id == nb_device.id:
+                        device_is_passive = False
                         break
-                else:
-                    continue
-                break
-            else:
-                device_is_passive = True
-        if links_to_device:
-            for link in links_from_device:
-                for ab_link in link.a_terminations + link.b_terminations:
-                    if isinstance(ab_link, Interface) and ab_link.device.id == nb_device.id:
-                        break
-                else:
-                    continue
-                break
-            else:
-                device_is_passive = True
+                if device_is_passive == False:
+                    break
     
         topology_dict['nodes'].append({
             'id': nb_device.id,
